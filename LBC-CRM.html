@@ -2536,13 +2536,13 @@ const App={
   },
 
   async checkUpdate(){
-    const API='https://api.github.com/repos/retrofive/lbc-crm/contents/version.json';
+    const VER='https://raw.githubusercontent.com/retrofive/lbc-crm/main/version.json';
     const DL='https://raw.githubusercontent.com/retrofive/lbc-crm/main/LBC-CRM.html';
     const el=document.getElementById('gear-update-status');
     if(el)el.innerHTML='<strong>Checking…</strong><span>Contacting GitHub</span>';
     const cmpVer=(a,b)=>{const[am,an]=(a+'').split('.').map(Number);const[bm,bn]=(b+'').split('.').map(Number);if(am!==bm)return am-bm;return(an||0)-(bn||0);};
     try{
-      const res=await fetch(API,{headers:{'Accept':'application/vnd.github.v3.raw','Cache-Control':'no-cache'},cache:'no-store'});
+      const res=await fetch(VER+'?_='+Date.now());
       if(!res.ok)throw new Error('HTTP '+res.status);
       const data=await res.json();
       const remote=data.version;
