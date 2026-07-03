@@ -901,16 +901,23 @@ const App={
         suggestedName:'LBC-CRM-data.json',
         types:[{description:'LBC Data File',accept:{'application/json':['.json']}}]
       });
-      // If the file already has data, offer to load it
       const file=await handle.getFile();
       if(file.size>0){
         const text=await file.text();
         try{
           const d=JSON.parse(text);
-          if(Array.isArray(d.collections)&&confirm(`Found existing data in this file:\n${d.collections.length} collections, ${d.contacts?.length||0} contacts.\n\nLoad it now? (No = overwrite file with current data)`)){
-            this.data=this._mergeData(this.data,d);
-            localStorage.setItem(DB,JSON.stringify(this.data));
-            this.render();
+          if(Array.isArray(d.collections)){
+            const fileHasData=d.collections.length>0||(d.contacts?.length||0)>0;
+            const appHasData=this.data.collections.length>0||(this.data.contacts?.length||0)>0;
+            if(fileHasData&&appHasData){
+              // Both sides have data — ask the user which to keep
+              const choice=confirm(`This file has existing data:\n  ${d.collections.length} collections, ${d.contacts?.length||0} contacts.\n\nYour current app also has data.\n\nOK = Load from file (recommended)\nCancel = Keep current app data`);
+              if(choice){this.data=this._mergeData(this.data,d);localStorage.setItem(DB,JSON.stringify(this.data));this.render();}
+            }else if(fileHasData){
+              // File has data, app is empty — always load silently
+              this.data=d;localStorage.setItem(DB,JSON.stringify(this.data));this.render();
+            }
+            // If only app has data (empty file), keep app data and write to file below
           }
         }catch(_){}
       }
