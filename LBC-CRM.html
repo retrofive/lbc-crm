@@ -84,6 +84,11 @@ td.rn{color:var(--t3);font-size:12px;width:36px;text-align:center}
 .pc{display:inline-block;padding:2px 7px;border-radius:4px;font-size:12px;font-weight:500}
 .pcc{background:var(--cash-bg);color:var(--cash)}
 .pck{background:var(--chk-bg);color:var(--chk);font-family:Consolas,monospace}
+.ck-grp-hd{background:var(--chk-bg)}
+.ck-grp-hd td{border-top:1px solid rgba(27,74,140,.15);border-bottom:0}
+.ck-grp-hd td:first-child{border-left:3px solid var(--chk)}
+.ck-grp-sub td{font-size:12.5px;border-bottom:1px solid var(--border)}
+.ck-grp-sub td:first-child{border-left:3px solid rgba(27,74,140,.18)}
 
 .ar{background:#F8F9FC}
 .ar td{padding:6px 8px}
@@ -359,6 +364,10 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
     <div class="view" id="view-boxes"     style="display:none"></div>
     <div class="view" id="view-reports"   style="display:none"></div>
   </div>
+  <div class="ct-scroll-nav" id="scroll-nav" style="display:none">
+    <button onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Top</button>
+    <button onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})">↓ Bottom</button>
+  </div>
   <footer class="app-footer">
     <span class="footer-copy">© <script>document.write(new Date().getFullYear())</script> retrofive LLC. All rights reserved.</span>
     <span class="footer-file"><span class="footer-dot disconnected" id="footer-dot"></span><span class="footer-path" id="footer-path">NO FILE CONNECTED</span></span>
@@ -424,6 +433,10 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
     <button class="gear-item" onclick="App.checkUpdate()">
       <span class="gear-item-icon">🔄</span>
       <span class="gear-item-body" id="gear-update-status"><strong>Check for Updates</strong><span>Current: <span class="ver-inline"></span></span></span>
+    </button>
+    <button class="gear-item" onclick="App.closeGear();window.open('LBC-CRM-User-Guide.html','_blank')">
+      <span class="gear-item-icon">📖</span>
+      <span class="gear-item-body"><strong>User Guide</strong><span>Reference manual &amp; feature docs</span></span>
     </button>
   </div>
   <div class="gear-section">
@@ -882,7 +895,7 @@ const App={
   openHist:new Set(),
   histSort:{},
   rptSort:{},
-  srchName:'',srchBol:'',srchChk:'',srchFrom:'',srchTo:'',
+  srchName:'',srchBol:'',srchChk:'',srchFrom:'',srchTo:'',srchPickup:'',
   splitCash:0,splitCheck:0,splitCheckNum:'',splitPending:false,
   anlFrom:'',anlTo:'',anlCmpFrom:'',anlCmpTo:'',anlShowFilter:false,
   contactSearch:'',openContacts:new Set(),ctView:'contacts',editContactId:null,addContactMode:false,
@@ -1574,7 +1587,26 @@ const App={
       return av.localeCompare(bv)*srt.dir;
     });
     const editing=this.editHistIds.has(c.id);
-    const rows=sorted.map((b,i)=>this.bRow(b,i+1,c.id,editing)).join('');
+    let rows;
+    if(editing){
+      rows=sorted.map((b,i)=>this.bRow(b,i+1,c.id,true)).join('');
+    }else{
+      const groups=this._ckGroups(sorted);
+      let rn=0;
+      rows=groups.map(g=>{
+        if(g.type==='single'){rn++;return this.bRow(g.box,rn,c.id,false);}
+        const start=rn+1;rn+=g.boxes.length;
+        const numLbl=start===rn?String(start):`${start}–${rn}`;
+        const custs=[...new Set(g.boxes.map(b=>b.customerName||'').filter(Boolean))];
+        const custLbl=custs.length===1?esc(custs[0]):custs.length>1?`${custs.length} customers`:'—';
+        const totalNet=g.boxes.reduce((s,b)=>s+(parseFloat(b.net||b.cost)||0),0);
+        const subs=g.boxes.map(b=>{
+          const chip=SZCHIP[b.size]||'';const lbl=SZ[b.size]||b.size||'—';const nv=b.net||b.cost;
+          return`<tr class="ck-grp-sub"><td class="rn"></td><td class="mo" style="padding-left:18px">${esc(b.bolNumber)||'—'}</td><td>${esc(b.customerName)||'—'}</td><td style="color:var(--t2);font-size:13px">${esc(b.destination)||'—'}</td><td><span class="chip ${chip}">${lbl}</span></td><td class="nu">${b.cost?fm(b.cost):'—'}</td><td></td><td class="nu">${nv?fm(nv):'—'}</td><td class="ct"><button class="bdel" onclick="App.delBox('${c.id}','${b.id}')">×</button></td></tr>`;
+        }).join('');
+        return`<tr class="ck-grp-hd"><td class="rn" style="font-size:11px;color:var(--chk)">${numLbl}</td><td class="mo"><span class="pc pck">Ck #${esc(g.checkNumber)}</span></td><td style="font-size:12px;color:var(--t2)">${custLbl}</td><td></td><td style="font-size:12px;color:var(--t2)">${g.boxes.length} boxes</td><td class="nu" style="color:var(--chk);font-weight:600">${fm(g.total)}</td><td><span style="font-size:11px;color:var(--chk)">Check</span></td><td class="nu" style="color:var(--chk)">${totalNet?fm(totalNet):'—'}</td><td></td></tr>${subs}`;
+      }).join('');
+    }
     const editBtn=editing
       ?`<button class="btn bsm" onclick="App.toggleHistEdit('${c.id}')" style="background:#22c55e;color:#fff;border-color:#22c55e">✓ Done Editing</button>`
       :`<button class="btn bo bsm" onclick="App.toggleHistEdit('${c.id}')" style="color:#6366f1;border-color:#6366f1">✏ Edit Entries</button>`;
@@ -1852,6 +1884,10 @@ const App={
             oninput="App.srchChk=this.value;App._srchDebounce()">
         </div>
         <div class="fgrp">
+          <label>Pickup Date</label>
+          <input type="date" id="sq-pd" onchange="App.srchPickup=this.value;App.rSearchResults()">
+        </div>
+        <div class="fgrp">
           <label>From Date</label>
           <input type="date" id="sq-fr" onchange="App.srchFrom=this.value;App.rSearchResults()">
         </div>
@@ -1859,18 +1895,38 @@ const App={
           <label>To Date</label>
           <input type="date" id="sq-to" onchange="App.srchTo=this.value;App.rSearchResults()">
         </div>
-        <button class="btn bo" onclick="App.srchName='';App.srchBol='';App.srchChk='';App.srchFrom='';App.srchTo='';['sq-nm','sq-bol','sq-chk','sq-fr','sq-to'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});App.rSearchResults()" style="align-self:flex-end">Clear</button>
+        <button class="btn bo" onclick="App.srchName='';App.srchBol='';App.srchChk='';App.srchFrom='';App.srchTo='';App.srchPickup='';['sq-nm','sq-bol','sq-chk','sq-fr','sq-to','sq-pd'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});App.rSearchResults()" style="align-self:flex-end">Clear</button>
       </div>
       <div id="srch-results"></div>`;
     }
     // Restore input values (needed when switching back to this tab)
     const nm=document.getElementById('sq-nm');const bol=document.getElementById('sq-bol');const chk=document.getElementById('sq-chk');const fr=document.getElementById('sq-fr');const to=document.getElementById('sq-to');
+    const pd=document.getElementById('sq-pd');
     if(nm&&nm.value!==this.srchName)nm.value=this.srchName;
     if(bol&&bol.value!==this.srchBol)bol.value=this.srchBol;
     if(chk&&chk.value!==this.srchChk)chk.value=this.srchChk;
     if(fr&&fr.value!==this.srchFrom)fr.value=this.srchFrom;
     if(to&&to.value!==this.srchTo)to.value=this.srchTo;
+    if(pd&&pd.value!==this.srchPickup)pd.value=this.srchPickup;
     this.rSearchResults();
+  },
+
+  _ckGroups(boxes){
+    const ckMap={};
+    boxes.forEach(b=>{if(b.payment==='check'&&b.checkNumber){if(!ckMap[b.checkNumber])ckMap[b.checkNumber]=[];ckMap[b.checkNumber].push(b);}});
+    const seen=new Set();
+    const result=[];
+    boxes.forEach(b=>{
+      if(b.payment==='check'&&b.checkNumber){
+        const k=b.checkNumber;
+        if(seen.has(k))return;
+        seen.add(k);
+        const bs=ckMap[k];
+        if(bs.length===1){result.push({type:'single',box:b});}
+        else{const total=bs.reduce((s,x)=>s+(parseFloat(x.cost)||0),0);result.push({type:'ck',checkNumber:k,boxes:bs,total});}
+      }else{result.push({type:'single',box:b});}
+    });
+    return result;
   },
 
   _srchDebounce(){clearTimeout(this._srchTimer);this._srchTimer=setTimeout(()=>this.rSearchResults(),150);},
@@ -1878,11 +1934,11 @@ const App={
   rSearchResults(){
     let el=document.getElementById('srch-results');if(!el){this.rSearch();return;}
     // Read directly from DOM inputs to avoid stale state
-    const nm=document.getElementById('sq-nm');const bol=document.getElementById('sq-bol');const chkEl=document.getElementById('sq-chk');const fr=document.getElementById('sq-fr');const to=document.getElementById('sq-to');
-    if(nm)this.srchName=nm.value;if(bol)this.srchBol=bol.value;if(chkEl)this.srchChk=chkEl.value;if(fr)this.srchFrom=fr.value;if(to)this.srchTo=to.value;
-    const n=this.srchName,b=this.srchBol,ck=this.srchChk,f=this.srchFrom,t=this.srchTo;
-    const hasQ=n||b||ck||f||t;
-    const results=hasQ?this.doSearch(n,b,ck,f,t):[];
+    const nm=document.getElementById('sq-nm');const bol=document.getElementById('sq-bol');const chkEl=document.getElementById('sq-chk');const fr=document.getElementById('sq-fr');const to=document.getElementById('sq-to');const pdEl=document.getElementById('sq-pd');
+    if(nm)this.srchName=nm.value;if(bol)this.srchBol=bol.value;if(chkEl)this.srchChk=chkEl.value;if(fr)this.srchFrom=fr.value;if(to)this.srchTo=to.value;if(pdEl)this.srchPickup=pdEl.value;
+    const n=this.srchName,b=this.srchBol,ck=this.srchChk,f=this.srchFrom,t=this.srchTo,pd=this.srchPickup;
+    const hasQ=n||b||ck||f||t||pd;
+    const results=hasQ?this.doSearch(n,b,ck,f,t,pd):[];
 
     const rows=results.map(({box,coll},i)=>{
       const chip=SZCHIP[box.size]||'';
@@ -1945,15 +2001,16 @@ const App={
     el.innerHTML=`${resHd}${tableHtml}${contactsHtml}${!hasQ?`<div class="ea"><h3>Enter a name or date range to search</h3><p>Matches across all completed collections and the active collection.</p></div>`:''}`;
   },
 
-  doSearch(name,bolq,chkq,from,to){
+  doSearch(name,bolq,chkq,from,to,pickup){
     const q=(name||'').trim().toLowerCase();
     const bq=(bolq||'').trim().replace(/\D/g,'');
     const cq=(chkq||'').trim();
     const results=[];
     this.data.collections.forEach(coll=>{
       const cd=coll.collectionDate||coll.startDate||'';
-      if(from&&cd&&cd<from)return;
-      if(to&&cd&&cd>to)return;
+      if(pickup&&cd!==pickup)return;
+      if(!pickup&&from&&cd&&cd<from)return;
+      if(!pickup&&to&&cd&&cd>to)return;
       coll.boxes.forEach(box=>{
         if(q){
           const nm=(box.customerName||'').toLowerCase();
@@ -2069,13 +2126,9 @@ const App={
         <button class="btn bo bsm" onclick="App.addContactMode=false;App.rContacts()">Cancel</button>
       </div>
     </div>`:''}
-    <div id="ct-top"></div>
     ${emptyBody}
     ${sorted.length?`<div class="cgrid">${cards}</div>`:''}
-    ${sorted.length>4?`<div id="ct-bot"></div><div class="ct-scroll-nav">
-      <button onclick="document.getElementById('ct-top').scrollIntoView({behavior:'smooth'})">↑ Top</button>
-      <button onclick="document.getElementById('ct-bot').scrollIntoView({behavior:'smooth'})">↓ Bottom</button>
-    </div>`:''}`;
+    `;
   },
 
   _rContactsResults(){this.rContacts();},
@@ -2543,22 +2596,35 @@ const App={
     const isOverview=this.rptType==='overview';
     const isChecks=this.rptType==='checks';
 
+    // Group check entries by check number (per collection date)
+    const ckGroups=[];
+    const ckGroupMap={};
+    ckRowsRaw.forEach(r=>{
+      const k=r.date+'|'+r.num;
+      if(!ckGroupMap[k]){ckGroupMap[k]={date:r.date,num:r.num,boxes:[],total:0};ckGroups.push(ckGroupMap[k]);}
+      ckGroupMap[k].boxes.push(r);ckGroupMap[k].total+=r.amount;
+    });
+    const uniqueChecks=Object.keys(ckSummary).length;
     const checksBodyHtml=ckRowsRaw.length?`
       <div class="rpt-kpis">
-        <div class="rpt-kpi"><div class="val">${ckRowsRaw.length}</div><div class="lbl">Check Entries</div></div>
-        <div class="rpt-kpi"><div class="val">${Object.keys(ckSummary).length}</div><div class="lbl">Unique Checks</div></div>
+        <div class="rpt-kpi"><div class="val">${ckRowsRaw.length}</div><div class="lbl">Check Boxes</div></div>
+        <div class="rpt-kpi"><div class="val">${uniqueChecks}</div><div class="lbl">Unique Checks</div></div>
         <div class="rpt-kpi"><div class="val" style="color:var(--chk)">${fm(ckTotal)}</div><div class="lbl">Total Checks</div></div>
       </div>
       <div class="rpt-section">
         <div class="rpt-section-title">Check Entries</div>
-        <table class="rpt-tbl"><thead><tr>${_th('ck','date','Date')}${_th('ck','bol','BOL Number')}${_th('ck','customer','Customer')}${_th('ck','num','Check #')}${_th('ck','amount','Amount','r')}</tr></thead>
-        <tbody>${ckRowsDisplay.map(r=>`<tr><td>${fmDate(r.date)}</td><td style="font-family:monospace;font-size:12px">${esc(r.bol)}</td><td>${esc(r.customer)}</td><td style="color:var(--chk);font-weight:600">Ck #${esc(r.num)}</td><td class="nr" style="color:var(--chk)">${fm(r.amount)}</td></tr>`).join('')}</tbody></table>
+        <table class="rpt-tbl"><thead><tr><th>Date</th><th>Check #</th><th>BOL Number</th><th>Customer</th><th class="nr">Amount</th></tr></thead>
+        <tbody>${ckGroups.map(g=>{
+          const hdr=`<tr class="ck-grp-hd" style="background:var(--chk-bg)"><td style="font-weight:600">${fmDate(g.date)}</td><td style="font-weight:700;color:var(--chk)">Ck #${esc(g.num)}</td><td style="font-size:12px;color:var(--t2)">${g.boxes.length} box${g.boxes.length!==1?'es':''}</td><td></td><td class="nr" style="font-weight:700;color:var(--chk)">${fm(g.total)}</td></tr>`;
+          const subs=g.boxes.map(r=>`<tr class="ck-grp-sub"><td></td><td style="padding-left:16px;font-size:12px;color:var(--t2)">↳</td><td style="font-family:monospace;font-size:12px;padding-left:4px">${esc(r.bol)}</td><td>${esc(r.customer)}</td><td class="nr" style="color:var(--chk)">${fm(r.amount)}</td></tr>`).join('');
+          return hdr+subs;
+        }).join('')}</tbody></table>
       </div>
       <div class="rpt-section">
         <div class="rpt-section-title">Check Summary</div>
-        <table class="rpt-tbl"><thead><tr>${_th('cks','num','Check #')}${_th('cks','count','Entries','r')}${_th('cks','total','Total Amount','r')}</tr></thead>
+        <table class="rpt-tbl"><thead><tr>${_th('cks','num','Check #')}${_th('cks','count','Boxes','r')}${_th('cks','total','Total Amount','r')}</tr></thead>
         <tbody>${ckSumKeysDisplay.map(num=>`<tr><td style="font-weight:600;color:var(--chk)">Ck #${esc(num)}</td><td class="nr">${ckSummary[num].count}</td><td class="nr" style="color:var(--chk)">${fm(ckSummary[num].total)}</td></tr>`).join('')}
-        <tr style="font-weight:700;border-top:2px solid #555"><td>Total Checks</td><td class="nr">${ckRowsRaw.length}</td><td class="nr" style="color:var(--chk)">${fm(ckTotal)}</td></tr></tbody></table>
+        <tr style="font-weight:700;border-top:2px solid #555"><td>Total</td><td class="nr">${ckRowsRaw.length} boxes · ${uniqueChecks} checks</td><td class="nr" style="color:var(--chk)">${fm(ckTotal)}</td></tr></tbody></table>
       </div>`
     :'<div class="rpt-no-data">No check payments in selected range.</div>';
 
@@ -3695,6 +3761,15 @@ const App={
       if(e.key==='Enter'&&document.activeElement?.closest('#ar'))App.addBox();
       if(e.key==='Escape'&&document.getElementById('mr').children.length)App.cm();
     });
+    const _sn=document.getElementById('scroll-nav');
+    if(_sn){
+      const _showSN=()=>{const scrollable=document.body.scrollHeight>window.innerHeight+50;_sn.style.display=scrollable?'flex':'none';};
+      window.addEventListener('scroll',_showSN,{passive:true});
+      window.addEventListener('resize',_showSN,{passive:true});
+      // re-check after each render so the nav appears without needing to scroll first
+      const _origRender=this.render.bind(this);
+      this.render=function(){_origRender();setTimeout(_showSN,50);};
+    }
   }
 };
 

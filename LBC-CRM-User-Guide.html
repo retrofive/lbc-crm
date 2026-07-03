@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LBC Collection Manager — User Guide v5.3</title>
+<style>
+/* ── Base Reset ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+  background: #f8fafc;
+  line-height: 1.6;
+}
+
+/* ── Page layout (screen) ───────────────────────────────────────────── */
+.page-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0;
+  background: #fff;
+  box-shadow: 0 2px 24px rgba(0,0,0,.10);
+}
+
+/* ── Cover ──────────────────────────────────────────────────────────── */
+.cover {
+  background: #0f1e3c;
+  padding: 80px 64px 60px;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 4px;
+  background: #e05d20;
+}
+.cover-logo {
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 28px;
+}
+.cover-title {
+  font-size: 38px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+.cover-subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+.cover-version {
+  font-size: 12px;
+  color: #475569;
+}
+
+/* ── Print button (screen only) ─────────────────────────────────────── */
+.print-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 24px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+.print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  background: #0f1e3c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .02em;
+}
+.print-btn:hover { background: #1d3461; }
+.print-note { font-size: 12px; color: #64748b; }
+
+/* ── TOC ────────────────────────────────────────────────────────────── */
+.toc-section {
+  padding: 40px 64px 32px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.toc-heading {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 20px;
+}
+.toc-list { list-style: none; }
+.toc-list > li {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 5px 0;
+  border-bottom: 1px dotted #e2e8f0;
+}
+.toc-list > li:last-child { border: none; }
+.toc-num {
+  font-weight: 700;
+  color: #e05d20;
+  min-width: 28px;
+  font-size: 13px;
+}
+.toc-title {
+  flex: 1;
+  font-size: 13px;
+  color: #1e293b;
+}
+.toc-sub { list-style: none; padding-left: 28px; }
+.toc-sub li {
+  font-size: 12px;
+  color: #64748b;
+  padding: 2px 0;
+  line-height: 1.4;
+}
+
+/* ── Content sections ───────────────────────────────────────────────── */
+.content { padding: 0 64px 64px; }
+
+.section {
+  padding-top: 48px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e2e8f0;
+}
+.section-num {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #e05d20;
+  min-width: 28px;
+}
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f1e3c;
+  line-height: 1.2;
+}
+
+.subsection {
+  margin-top: 28px;
+}
+.subsection-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1d4ed8;
+  margin-bottom: 10px;
+  padding-left: 10px;
+  border-left: 3px solid #1d4ed8;
+}
+
+.sub2 {
+  margin-top: 16px;
+}
+.sub2-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+p {
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+ul.guide-list {
+  list-style: none;
+  margin: 8px 0 12px 0;
+  padding: 0;
+}
+ul.guide-list li {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.6;
+}
+ul.guide-list li::before {
+  content: '•';
+  color: #e05d20;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+ul.guide-list.sub {
+  padding-left: 18px;
+}
+ul.guide-list.sub li::before {
+  content: '–';
+  color: #94a3b8;
+}
+
+/* ── Callouts ───────────────────────────────────────────────────────── */
+.callout {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin: 12px 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.callout.tip {
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+  color: #1e40af;
+}
+.callout.warn {
+  background: #fff7ed;
+  border-left: 3px solid #f97316;
+  color: #9a3412;
+}
+.callout-icon { flex-shrink: 0; font-weight: 700; }
+
+/* ── Tables ─────────────────────────────────────────────────────────── */
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table.guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+table.guide-table th {
+  background: #0f1e3c;
+  color: #fff;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 12px;
+  letter-spacing: .03em;
+}
+table.guide-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+  line-height: 1.5;
+  color: #334155;
+}
+table.guide-table tr:nth-child(even) td { background: #f8fafc; }
+table.guide-table td:first-child { font-weight: 600; color: #1e293b; }
+
+/* ── Inline code ────────────────────────────────────────────────────── */
+code {
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: #0f172a;
+}
+
+/* ── Strong/colored inline ──────────────────────────────────────────── */
+.accent { color: #e05d20; font-weight: 600; }
+.blue { color: #1d4ed8; font-weight: 600; }
+.green { color: #16a34a; font-weight: 600; }
+
+/* ── Footer ─────────────────────────────────────────────────────────── */
+.doc-footer {
+  padding: 24px 64px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* ── Print styles ───────────────────────────────────────────────────── */
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  .print-bar { display: none !important; }
+  .page-wrap { max-width: 100%; box-shadow: none; }
+  .cover {
+    min-height: auto;
+    padding: 60px 50px 50px;
+    page-break-after: always;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .toc-section { page-break-after: always; }
+  .section { page-break-inside: avoid; }
+  .subsection { page-break-inside: avoid; }
+  table.guide-table { page-break-inside: avoid; }
+  .content { padding: 0 50px 40px; }
+  .section { padding-top: 36px; }
+  a { text-decoration: none; color: inherit; }
+  .callout { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.guide-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-logo">LBC Cargo · Branch 602 · Florida Agents</div>
+    <div class="cover-title">LBC Collection Manager</div>
+    <div class="cover-subtitle">User Guide &amp; Reference Manual</div>
+    <div class="cover-version">Version 5.3 &nbsp;·&nbsp; 2025</div>
+  </div>
+
+  <!-- Print bar (screen only) -->
+  <div class="print-bar">
+    <span class="print-note">Open in Chrome or Edge, then:</span>
+    <button class="print-btn" onclick="window.print()">🖨 Save as PDF</button>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc-section">
+    <div class="toc-heading">Table of Contents</div>
+    <ul class="toc-list">
+      <li><span class="toc-num">1</span><span class="toc-title">Overview</span></li>
+      <li><span class="toc-num">2</span><span class="toc-title">Getting Started — First Launch, Data Files, Auto-Reconnect</span></li>
+      <li><span class="toc-num">3</span><span class="toc-title">Navigation &amp; Header — Tabs, Calculator, Refresh, Settings, Footer</span></li>
+      <li><span class="toc-num">4</span><span class="toc-title">Active Collection — Adding Boxes, Payment Types, Submitting</span></li>
+      <li><span class="toc-num">5</span><span class="toc-title">History — Viewing, Editing, Print &amp; PDF Export</span></li>
+      <li><span class="toc-num">6</span><span class="toc-title">Reports</span></li>
+      <li><span class="toc-num">7</span><span class="toc-title">Analytics</span></li>
+      <li><span class="toc-num">8</span><span class="toc-title">Search</span></li>
+      <li><span class="toc-num">9</span><span class="toc-title">Contacts</span></li>
+      <li><span class="toc-num">10</span><span class="toc-title">Boxes Inventory</span></li>
+      <li><span class="toc-num">11</span><span class="toc-title">Settings &amp; Tools — Branch, Pricing, File Management, Backup, Import, Updates</span></li>
+      <li><span class="toc-num">12</span><span class="toc-title">Multi-PC Shared Data Workflow</span></li>
+      <li><span class="toc-num">13</span><span class="toc-title">ODS Import Reference — Field Mapping, Pricing Override, Duplicates</span></li>
+    </ul>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ═══════════ 1. OVERVIEW ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <span class="section-title">Overview</span>
+      </div>
+      <p>LBC Collection Manager is a single-file portable web application designed for LBC Cargo Branch 602 agents in Florida. It runs entirely in any modern browser (Chrome or Edge recommended) directly from a local HTML file — no server, no internet connection required for day-to-day use.</p>
+      <p>All data is stored in a <strong>JSON file on your computer</strong> that you choose and control. Multiple computers can share the same JSON file over a network drive or synced folder, allowing a team to work from a common dataset.</p>
+      <div class="tbl-wrap">
+        <table class="guide-table">
+          <thead><tr><th>Feature</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Active Collection</td><td>Record box entries in real time on pickup day</td></tr>
+            <tr><td>History</td><td>View, audit, and export all completed collections</td></tr>
+            <tr><td>Reports</td><td>Sortable summaries by month, box size, checks, and detail line items</td></tr>
+            <tr><td>Analytics</td><td>Period-over-period comparisons and trend charts</td></tr>
+            <tr><td>Search</td><td>Full-text search across all BOL numbers, customers, and check numbers</td></tr>
+            <tr><td>Contacts</td><td>Customer address book linked to shipment history</td></tr>
+            <tr><td>Boxes Inventory</td><td>Track individual box status and outgoing log</td></tr>
+            <tr><td>Calculator</td><td>Pop-out 10-key calculator with keyboard support</td></tr>
+            <tr><td>ODS Import</td><td>Bulk import from legacy spreadsheet files with pricing override</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════ 2. GETTING STARTED ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <span class="section-title">Getting Started</span>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">2.1 &nbsp; First Launch</div>
+        <p>Open <strong>LBC-CRM.html</strong> in Chrome or Edge by double-clicking the file. The app loads instantly. On the very first launch, data lives only in the browser's local storage — it is not yet connected to a persistent file on disk.</p>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span>Local storage can be cleared by the browser. Always connect a data file (see below) to ensure your data is safely saved to disk.</span>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">2.2 &nbsp; Creating a Data File</div>
+        <p>To save your data persistently to a file on disk:</p>
+        <ul class="guide-list">
+          <li>Open <strong>Settings</strong> (⚙ gear icon, top-right corner).</li>
+          <li>Under <strong>Data</strong>, click <strong>Create New Data File</strong>.</li>
+          <li>A <em>Save As</em> dialog appears. Choose a folder and name the file (e.g. <code>LBC-CRM-data.json</code>). Click Save.</li>
+          <li>The footer turns <span class="green">green</span> and shows the filename — you are now connected.</li>
+          <li>From this point, every save automatically writes to that file.</li>
+        </ul>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <span>Store the JSON file in a shared network folder or cloud-synced directory (OneDrive, Google Drive) to enable multi-PC access.</span>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">2.3 &nbsp; Connecting to an Existing Data File</div>
+        <p>On a second computer, or after moving the file, connect the app to the existing data:</p>
+        <ul class="guide-list">
+          <li>Open <strong>Settings → Connect to Existing File</strong>.</li>
+          <li>An <em>Open</em> dialog appears. Browse to and select your <code>.json</code> data file.</li>
+          <li>The app loads all data from the file. The footer shows the filename in green.</li>
+        </ul>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span>This is an Open dialog, not Save As — it never overwrites your file on connect. Data is read first, then the connection is established.</span>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">2.4 &nbsp; Auto-Reconnect on Reload</div>
+        <p>The app remembers your last-used data file using the browser's IndexedDB storage. When you reload or reopen the HTML file:</p>
+        <ul class="guide-list">
+          <li><strong>If the browser still holds permission</strong> (same session): reconnects silently, no click needed.</li>
+          <li><strong>If permission expired</strong> (new browser session): a blue banner appears at the top with a single <strong>Reconnect</strong> button. One click re-grants permission and loads data.</li>
+          <li><strong>If the file was deleted or moved to another drive</strong>: the banner appears, but clicking Reconnect will show "File no longer exists — please connect a new data file." The stored handle is cleared and the footer turns grey.</li>
+        </ul>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <span>Moving the file to a different folder on the same drive is fine — the browser handle follows it automatically.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 3. NAVIGATION ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <span class="section-title">Navigation &amp; Header</span>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.1 &nbsp; Tab Bar</div>
+        <div class="tbl-wrap">
+          <table class="guide-table">
+            <thead><tr><th>Tab</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>Active</td><td>Current open collection — add and edit boxes in real time</td></tr>
+              <tr><td>History</td><td>All completed (submitted) collections</td></tr>
+              <tr><td>Reports</td><td>Tabular summaries — monthly, by box size, checks, and detail</td></tr>
+              <tr><td>Analytics</td><td>Charts and period comparisons</td></tr>
+              <tr><td>Search</td><td>Search across all BOL numbers, customer names, and check numbers</td></tr>
+              <tr><td>Contacts</td><td>Customer address book</td></tr>
+              <tr><td>📦 Boxes</td><td>Inventory of individual boxes with outgoing log</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.2 &nbsp; Calculator</div>
+        <p>A pop-out 10-key calculator is accessible via the calculator icon in the header. It supports both mouse clicks and full keyboard input:</p>
+        <ul class="guide-list">
+          <li>Number row (0–9) and numeric keypad</li>
+          <li>Operators: <code>+</code> <code>-</code> <code>*</code> <code>/</code> (keyboard or on-screen)</li>
+          <li><code>Enter</code> or <code>NumpadEnter</code> to calculate</li>
+          <li><code>Backspace</code> to delete last digit, <code>Escape</code> to clear</li>
+          <li>Tape history scrolls within the popup — the calculator can be dragged to any position on screen</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.3 &nbsp; Refresh Button (↺)</div>
+        <p>The circular arrow button next to the calculator manually re-reads the connected JSON file from disk and reloads all data. Use this to pull in changes made by another computer on a shared file.</p>
+        <p>The app also <strong>auto-refreshes</strong> whenever you switch back to the browser tab after having it in the background.</p>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <span>If no file is connected, the button shows a toast: "No data file connected."</span>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.4 &nbsp; Settings (⚙ Gear)</div>
+        <p>The gear icon opens the Settings &amp; Tools panel, organized into sections: <strong>Account</strong> (Branch Settings, Pricing), <strong>Data</strong> (file management, backup, ODS import), and <strong>App</strong> (update checker). Close by clicking × or clicking outside the panel. Each section is covered in detail in Section 11.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">3.5 &nbsp; Footer Status Bar</div>
+        <p>The footer at the bottom of every page shows your data file connection status at a glance:</p>
+        <ul class="guide-list">
+          <li><span class="green">● Green dot + filename</span>: a data file is connected and active (e.g. <code>LBC-CRM-data.json</code>).</li>
+          <li><span style="color:#6b7280;font-weight:600">● Grey dot + "NO FILE CONNECTED"</span>: no data file is linked. Data is only in browser local storage and at risk of loss on a browser clear.</li>
+        </ul>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span>The browser API only exposes the filename, not the full folder path. Name your file descriptively (e.g. <code>LBC-602-main.json</code>) to avoid confusion when multiple files exist.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 4. ACTIVE COLLECTION ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <span class="section-title">Active Collection</span>
+      </div>
+      <p>The <strong>Active</strong> tab is your live workspace on pickup day. One collection is open at a time. Boxes are added one by one as customers arrive.</p>
+
+      <div class="subsection">
+        <div class="subsection-title">4.1 &nbsp; Starting a Collection</div>
+        <p>When no collection is open, the Active tab prompts you to start one. Enter the collection date, branch number, and agent name, then click <strong>Start Collection</strong>. The entry form appears immediately.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">4.2 &nbsp; Adding Box Entries</div>
+        <p>Fill in the entry row at the top of the table:</p>
+        <div class="tbl-wrap">
+          <table class="guide-table">
+            <thead><tr><th>Field</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>BOL Number</td><td>Bill of Lading number — must be <strong>8 or more digits</strong></td></tr>
+              <tr><td>Customer</td><td>Last name, First name (or full name)</td></tr>
+              <tr><td>Destination</td><td>City or region (optional)</td></tr>
+              <tr><td>Size</td><td>Large / Half / Jumbo / Jr Box / Irregular (Irr1–Irr7)</td></tr>
+              <tr><td>Cost</td><td>Auto-fills from the pricing table when Size is selected</td></tr>
+              <tr><td>Net</td><td>Override the cost if a discount applies</td></tr>
+              <tr><td>Payment</td><td>Cash, Check, or Split (part cash / part check)</td></tr>
+              <tr><td>Check #</td><td>Appears when Payment = Check or Split; up to 5 digits</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Press <strong>Enter</strong> or click <strong>Add</strong> to save the row. The cursor returns to the BOL field for the next entry.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">4.3 &nbsp; Payment Types</div>
+        <div class="sub2">
+          <div class="sub2-title">Cash</div>
+          <p>Select Cash from the Payment dropdown. No check number required. The cost is set by the pricing table.</p>
+        </div>
+        <div class="sub2">
+          <div class="sub2-title">Check</div>
+          <p>Select Check and enter the check number (up to 5 digits). Check numbers are always 5 digits or fewer; BOL numbers are always 8 or more — these two ranges never overlap.</p>
+        </div>
+        <div class="sub2">
+          <div class="sub2-title">Split</div>
+          <p>Select Split… to open the split payment dialog. Enter the cash amount, check amount, and check number. A mismatch warning appears if the total does not equal the box cost.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">4.4 &nbsp; Editing &amp; Deleting Rows</div>
+        <p>Each saved row shows a <strong>✓ Save</strong> and <strong>× Delete</strong> button. Edit any field inline, then click ✓ to commit. A payment mismatch warning fires if the new amounts do not match the cost.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">4.5 &nbsp; Submitting a Collection</div>
+        <p>When all boxes are entered, click <strong>Submit Collection</strong>. The collection moves to History with status <em>Completed</em>. A fresh Active tab is ready for the next pickup.</p>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span>Submitted collections cannot be edited from the Active tab. Use <strong>History → Edit Entries</strong> to make corrections after submission.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 5. HISTORY ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <span class="section-title">History</span>
+      </div>
+      <p>The <strong>History</strong> tab lists every completed collection as a collapsible card showing date, branch, agent, total value, and box count.</p>
+
+      <div class="subsection">
+        <div class="subsection-title">5.1 &nbsp; Viewing Completed Collections</div>
+        <p>Click any card header to expand it and see the full box table. Click again to collapse.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">5.2 &nbsp; Sorting</div>
+        <p>Click any column header inside an expanded card to sort by that column. Click again to reverse direction. Sort indicators (▲ ▼) show the active column and direction. Available columns: BOL Number, Customer, Destination, Size, Cost, Payment, Net.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">5.3 &nbsp; Editing Entries (Audit Mode)</div>
+        <p>Each card has an <strong>✏ Edit Entries</strong> button. Clicking it switches that card's rows into fully editable mode — the same inline inputs as the Active tab. A purple outline marks the card as being edited.</p>
+        <ul class="guide-list">
+          <li>Fix check numbers, amounts, customer names, sizes, or destinations.</li>
+          <li>Click <strong>✓</strong> on each row to save that row's changes.</li>
+          <li>Click <strong>✓ Done Editing</strong> (green button) to return to read-only view.</li>
+        </ul>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <span>Use Edit Entries to reconcile the web app against a physical ODS spreadsheet when discrepancies are found — e.g. a wrong check amount or a missing entry.</span>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">5.4 &nbsp; Print &amp; PDF Export</div>
+        <p>Each card offers two export options in its action bar:</p>
+        <ul class="guide-list">
+          <li><strong>🖨 Print Report</strong>: opens a print-formatted collection report in a new window.</li>
+          <li><strong>💾 Save PDF</strong>: generates and downloads a PDF of the collection report directly.</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">5.5 &nbsp; Re-opening a Collection</div>
+        <p>Click <strong>↩ Re-open</strong> to move a completed collection back to the Active tab for continued editing. Useful if a collection was submitted prematurely or needs additional entries.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════ 6. REPORTS ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <span class="section-title">Reports</span>
+      </div>
+      <p>The <strong>Reports</strong> tab provides date-filtered tabular summaries. Set a date range at the top and choose a report type:</p>
+      <div class="tbl-wrap">
+        <table class="guide-table">
+          <thead><tr><th>Report</th><th>Shows</th></tr></thead>
+          <tbody>
+            <tr><td>Monthly Summary</td><td>Total cash, checks, and box count grouped by month</td></tr>
+            <tr><td>By Box Size</td><td>Volume and revenue broken down by size type</td></tr>
+            <tr><td>Detailed</td><td>Every collection with per-box line items</td></tr>
+            <tr><td>Check Entries</td><td>Every check payment with number, customer, amount, and date</td></tr>
+            <tr><td>Check Summary</td><td>Check numbers with running totals — useful for catching duplicate check use</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>All report tables are <strong>sortable</strong> — click any column header to sort ascending; click again to sort descending. Reports can be printed or saved as PDF using the buttons at the top of the Reports view.</p>
+    </div>
+
+    <!-- ═══════════ 7. ANALYTICS ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <span class="section-title">Analytics</span>
+      </div>
+      <p>The <strong>Analytics</strong> tab appears after at least two completed collections are recorded. It provides:</p>
+      <ul class="guide-list">
+        <li>Period-over-period comparisons (current range vs prior range)</li>
+        <li>Total value, box count, average per collection, cash vs check split</li>
+        <li>Trend charts over time</li>
+        <li>Date range filters to focus on any window of history</li>
+      </ul>
+      <p>Use the <strong>From / To</strong> date pickers at the top to set the primary period. A comparison period can optionally be set to benchmark against a prior span.</p>
+    </div>
+
+    <!-- ═══════════ 8. SEARCH ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <span class="section-title">Search</span>
+      </div>
+      <p>The <strong>Search</strong> tab lets you find any box entry across all collections. Filter by one or more fields simultaneously:</p>
+      <ul class="guide-list">
+        <li><strong>Customer name</strong>: partial match on last or first name</li>
+        <li><strong>BOL number</strong>: partial numeric match</li>
+        <li><strong>Check number</strong>: exact or partial match</li>
+        <li><strong>Date range</strong>: from/to collection date</li>
+      </ul>
+      <p>Results show the collection date, BOL, customer, destination, size, and payment. Results update live as you type.</p>
+    </div>
+
+    <!-- ═══════════ 9. CONTACTS ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">09</span>
+        <span class="section-title">Contacts</span>
+      </div>
+      <p>The <strong>Contacts</strong> tab is a customer address book. Each contact can store name, phone numbers, email, two addresses (local and Philippines), and free-text notes.</p>
+      <p>Contacts are linked to shipment history — open a contact card to see every collection entry matched to that customer by name.</p>
+
+      <div class="subsection">
+        <div class="subsection-title">Import / Export</div>
+        <p>Contacts can be exported to a <code>.csv</code> file and imported back — useful for backup or moving between machines. Import supports both <strong>Overwrite</strong> (replace all) and <strong>Merge</strong> (add new, update existing by name) modes. Access import/export under <strong>Settings → Contacts</strong>.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════ 10. BOXES ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <span class="section-title">Boxes Inventory</span>
+      </div>
+      <p>The <strong>📦 Boxes</strong> tab tracks individual box units (distinct from collection entries). Each box record has a size, status, and an outgoing log.</p>
+      <ul class="guide-list">
+        <li>Add boxes by size to your inventory</li>
+        <li>Mark boxes as available, in use, or shipped</li>
+        <li>Log outgoing box movements with date, quantity, and recipient notes</li>
+        <li>Print an inventory report from this tab</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════ 11. SETTINGS ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">11</span>
+        <span class="section-title">Settings &amp; Tools</span>
+      </div>
+      <p>Open with the <strong>⚙ gear icon</strong> (top-right). Close by clicking × or clicking outside the panel.</p>
+
+      <div class="subsection">
+        <div class="subsection-title">11.1 &nbsp; Branch Settings</div>
+        <p>Set your branch number, branch title, and default agent name. These values pre-fill on new collections and appear on printed reports.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">11.2 &nbsp; Pricing</div>
+        <p>Set the standard rate for each box size. Rates auto-fill the Cost field when a size is selected during entry.</p>
+        <div class="tbl-wrap">
+          <table class="guide-table">
+            <thead><tr><th>Size Code</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>L</td><td>Large box</td></tr>
+              <tr><td>Half</td><td>Half box</td></tr>
+              <tr><td>Jumbo</td><td>Jumbo box</td></tr>
+              <tr><td>Jr</td><td>Junior box</td></tr>
+              <tr><td>Irr1 – Irr7</td><td>Irregular boxes (7 price tiers)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">11.3 &nbsp; Data File Management</div>
+        <ul class="guide-list">
+          <li><strong>Connect to Existing File</strong>: opens an <em>Open</em> dialog to link an existing <code>.json</code> data file. All data from the file loads into the app. Never overwrites on connect — read only.</li>
+          <li><strong>Create New Data File</strong>: opens a <em>Save As</em> dialog to create a new empty file. Current app data is written to the new file immediately.</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">11.4 &nbsp; Backup &amp; Restore</div>
+        <p><strong>Backup</strong> downloads the entire dataset as a timestamped <code>.json</code> snapshot — independent of the live data file. Take backups before major imports or changes.</p>
+        <p><strong>Restore</strong> merges a backup <code>.json</code> into the current dataset. Collections are merged by date, contacts by name. It does not wipe existing data.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">11.5 &nbsp; Import from ODS Spreadsheet</div>
+        <p>See <strong>Section 13</strong> for a full reference. In brief: click <strong>Import from Spreadsheet</strong>, select an <code>.ods</code> file, review the preview table (duplicates are auto-unchecked), optionally adjust pricing in the Pricing Override panel, and click <strong>Import Selected</strong>.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">11.6 &nbsp; Check for Updates</div>
+        <p>Under the <strong>App</strong> section, click <strong>Check for Updates</strong> to compare your current version against the latest release on GitHub.</p>
+        <ul class="guide-list">
+          <li><strong>Up to date</strong>: shows your version and confirms it is current.</li>
+          <li><strong>Update available</strong>: shows the new version number and a <strong>Download &amp; replace file</strong> button.</li>
+        </ul>
+        <p>Clicking Download opens a <em>Save As</em> dialog. Save over your existing <code>LBC-CRM.html</code> file to apply the update. Reopen the file in the browser to run the new version. Your data file is unaffected.</p>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span>An internet connection is required to check for updates.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 12. MULTI-PC ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">12</span>
+        <span class="section-title">Multi-PC Shared Data Workflow</span>
+      </div>
+      <p>The app supports a shared JSON file workflow where multiple computers read from and write to the same data file on a network drive or synced folder.</p>
+
+      <div class="subsection">
+        <div class="subsection-title">Setup</div>
+        <ul class="guide-list">
+          <li>Computer A creates the data file in a shared/synced location (e.g. a OneDrive folder visible to both machines).</li>
+          <li>Computer B opens the app and uses <strong>Connect to Existing File</strong> to link the same file.</li>
+          <li>Both computers now share the same dataset and save to the same file.</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Staying in Sync</div>
+        <ul class="guide-list">
+          <li><strong>Auto-refresh on tab focus</strong>: whenever you switch back to the browser tab, the app re-reads the file and reloads data automatically.</li>
+          <li><strong>Manual refresh</strong>: click the ↺ button in the header at any time to pull the latest data from the file immediately.</li>
+        </ul>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Important Considerations</div>
+        <ul class="guide-list">
+          <li><strong>One writer at a time</strong>: the app does not have real-time conflict resolution. Avoid two users saving simultaneously to prevent one overwriting the other's changes.</li>
+          <li><strong>Cloud sync folders</strong> (OneDrive, Google Drive, Dropbox): work well for non-simultaneous use. Allow sync to complete before the second user opens the app.</li>
+          <li><strong>Network drives</strong>: the drive must be mounted and accessible. If the drive is offline, the app falls back to browser local storage until reconnected.</li>
+        </ul>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <span>Click the Refresh button before starting a new collection entry to ensure you have the latest data from other users.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 13. ODS IMPORT ═══════════ -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">13</span>
+        <span class="section-title">ODS Import Reference</span>
+      </div>
+      <p>The ODS import reads legacy <code>.ods</code> spreadsheet files (OpenDocument Spreadsheet format, as produced by the original LBC collection spreadsheet). It runs entirely in the browser — no server or external tool required.</p>
+
+      <div class="subsection">
+        <div class="subsection-title">13.1 &nbsp; Field Mapping Rules</div>
+        <div class="tbl-wrap">
+          <table class="guide-table">
+            <thead><tr><th>ODS Content</th><th>Imported As</th><th>Rule</th></tr></thead>
+            <tbody>
+              <tr><td>Row number column</td><td>(skipped)</td><td>Rows without a valid row number are ignored</td></tr>
+              <tr><td>BOL column</td><td>bolNumber</td><td>Must be <strong>8 or more digits</strong> — shorter numbers are treated as check numbers</td></tr>
+              <tr><td>Name column</td><td>customerName</td><td>Imported as-is</td></tr>
+              <tr><td>Size column</td><td>size</td><td>See size codes below</td></tr>
+              <tr><td><code>$$</code> in payment col</td><td>payment = cash</td><td>Double dollar sign marks a cash payment</td></tr>
+              <tr><td>1–5 digit number</td><td>payment = check</td><td>Short numbers are check numbers, never BOL numbers</td></tr>
+              <tr><td><code>checkNum / $amt</code></td><td>checkTotals</td><td>Parsed from the "Florida Agents Use Only" section; <code>/</code> is a literal separator, never division</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sub2" style="margin-top:18px">
+          <div class="sub2-title">Size Code Mapping</div>
+          <div class="tbl-wrap">
+            <table class="guide-table">
+              <thead><tr><th>ODS Value</th><th>Imported Size</th></tr></thead>
+              <tbody>
+                <tr><td>L &nbsp;or&nbsp; J &nbsp;(legacy pre-2025)</td><td>Large (L)</td></tr>
+                <tr><td>Half, ½, 1/2</td><td>Half Box</td></tr>
+                <tr><td>Jumbo (full word)</td><td>Jumbo</td></tr>
+                <tr><td>Jr…</td><td>Junior Box (Jr)</td></tr>
+                <tr><td>Irr + number 1–7</td><td>Irregular (Irr1–Irr7)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="callout warn" style="margin-top:10px">
+          <span class="callout-icon">⚠</span>
+          <span>The legacy size code <code>J</code> (used before approximately 2025) maps to <strong>Large</strong>. "Jumbo" requires the full word and is never confused with a single <code>J</code>.</span>
+        </div>
+
+        <p style="margin-top:12px"><strong>Leading zeros on check numbers:</strong> ODS spreadsheets store numbers without leading zeros (e.g. <code>0096</code> becomes <code>96</code> in the cell value). The importer normalizes both the check totals and box row values by stripping leading zeros before matching, so check <code>0096 / $180</code> is correctly matched to its corresponding box row.</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">13.2 &nbsp; Pricing Override</div>
+        <p>By default, cash box costs are looked up from the current pricing table in Settings. For historical imports where rates were different, the import preview provides a <strong>Pricing Override</strong> panel (collapsed by default).</p>
+        <ul class="guide-list">
+          <li>Expand the panel by clicking the ▶ arrow in the preview dialog.</li>
+          <li>Adjust rates for Large, Half, Jumbo, Jr, and Irregular.</li>
+          <li>These rates apply only to the current import run — they do not change your saved pricing settings.</li>
+          <li><strong>Check payments are unaffected</strong> — their amounts always come from the spreadsheet totals, not from the pricing table.</li>
+        </ul>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <span>Before importing an old spreadsheet, check what rates were in effect at that time and enter them in the Pricing Override panel.</span>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">13.3 &nbsp; Duplicate Detection</div>
+        <p>The preview compares each collection's date against dates already in the app. Collections with a matching date are:</p>
+        <ul class="guide-list">
+          <li>Shown grayed out in the preview table</li>
+          <li>Automatically unchecked (will not be imported by default)</li>
+          <li>Labeled with a ⚠ "exists" warning</li>
+        </ul>
+        <p>You can manually check a duplicate to re-import it, which will <strong>add a second copy</strong> for that date — it does not overwrite the existing one. Delete the duplicate from History afterwards if it was unintentional.</p>
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span>Duplicate detection is by date only. Two legitimate collections on the same date will both show the warning — manually check the second one to import it.</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- Footer -->
+  <div class="doc-footer">
+    <span>LBC Collection Manager v5.3 &nbsp;·&nbsp; Branch 602 · Florida Agents</span>
+    <span>github.com/retrofive/lbc-crm</span>
+  </div>
+
+</div><!-- /page-wrap -->
+</body>
+</html>
