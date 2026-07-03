@@ -3441,42 +3441,100 @@ const App={
     const ML=36,W=612,UW=540;
 
     if(isChecks){
-      // ── Checks PDF ────────────────────────────────────────────────────────
-      const ckRows=[];
+      // ── Checks PDF — matches printable layout ─────────────────────────────
+      const NAVY=[27,74,140],CHK_BG=[234,240,249],T2=[89,96,112],WHITE=[255,255,255];
+      // Build raw rows
+      const ckRowsRaw=[];
       filtered.forEach(c=>c.boxes.forEach(b=>{
-        if(b.payment==='check'&&b.checkNumber)ckRows.push([fd(c.collectionDate)||'—',b.bolNumber||'—',b.customerName||'—',`Ck #${b.checkNumber}`,fm(parseFloat(b.cost)||0)]);
-        else if(b.payment==='split'&&b.checkNumber)ckRows.push([fd(c.collectionDate)||'—',b.bolNumber||'—',b.customerName||'—',`Ck #${b.checkNumber}`,fm(parseFloat(b.checkAmount)||0)]);
+        if(b.payment==='check'&&b.checkNumber)ckRowsRaw.push({date:c.collectionDate,bol:b.bolNumber||'—',customer:b.customerName||'—',num:b.checkNumber,amount:parseFloat(b.cost)||0});
+        else if(b.payment==='split'&&b.checkNumber)ckRowsRaw.push({date:c.collectionDate,bol:b.bolNumber||'—',customer:b.customerName||'—',num:b.checkNumber,amount:parseFloat(b.checkAmount)||0});
       }));
-      ckRows.sort((a,b)=>a[3].localeCompare(b[3],undefined,{numeric:true}));
+      // Group by date+checkNum (same as printable)
+      const ckGroups=[];const ckGroupMap={};
+      ckRowsRaw.forEach(r=>{
+        const k=r.date+'|'+r.num;
+        if(!ckGroupMap[k]){ckGroupMap[k]={date:r.date,num:r.num,boxes:[],total:0};ckGroups.push(ckGroupMap[k]);}
+        ckGroupMap[k].boxes.push(r);ckGroupMap[k].total+=r.amount;
+      });
+      ckGroups.sort((a,b)=>a.num.localeCompare(b.num,undefined,{numeric:true}));
+      // Summary map
       const ckSumMap={};
-      ckRows.forEach(r=>{const k=r[3];if(!ckSumMap[k])ckSumMap[k]=0;ckSumMap[k]+=parseFloat(r[4].replace(/[^0-9.]/g,''))||0;});
+      ckRowsRaw.forEach(r=>{if(!ckSumMap[r.num])ckSumMap[r.num]=0;ckSumMap[r.num]+=r.amount;});
       const ckTotal=Object.values(ckSumMap).reduce((s,v)=>s+v,0);
+      const uniqueCount=Object.keys(ckSumMap).length;
+
       let y=this._pdfHeader(doc,'Checks Report',`${br} · ${agt} · ${rng}`);
-      // Stat boxes
+      // KPI stat boxes — matches printable labels
       const sw=(UW-8)/3;
-      [[ckRows.length,'Check Entries',[41,128,185]],[Object.keys(ckSumMap).length,'Unique Checks',[80,80,80]],[fm(ckTotal),'Total Checks',[0,48,135]]].forEach(([val,lbl,clr],i)=>{
+      [[ckRowsRaw.length,'Check Boxes',NAVY],[uniqueCount,'Unique Checks',[80,80,80]],[fm(ckTotal),'Total Checks',NAVY]].forEach(([val,lbl,clr],i)=>{
         const bx=ML+i*(sw+4);doc.setFillColor(...clr);doc.roundedRect(bx,y,sw,46,4,4,'F');
         doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text(lbl,bx+6,y+14);
         doc.setFontSize(typeof val==='number'?18:12);doc.setFont('helvetica','bold');doc.text(String(val),bx+6,y+34);
       });
       y+=60;
+
+      // Section label "CHECK ENTRIES"
+      doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(...T2);
+      doc.text('CHECK ENTRIES',ML,y);
+      doc.setDrawColor(...NAVY);doc.setLineWidth(0.5);doc.line(ML,y+3,W-36,y+3);
+      y+=12;
+
+      // Build grouped body rows
+      const entBody=[];
+      ckGroups.forEach(g=>{
+        // Group header row (Date | Ck #NUM | N boxes | — | Total)
+        entBody.push([
+          {content:fd(g.date)||'—',styles:{fontStyle:'bold',fillColor:CHK_BG,textColor:NAVY}},
+          {content:`Ck #${g.num}`,styles:{fontStyle:'bold',fillColor:CHK_BG,textColor:NAVY}},
+          {content:`${g.boxes.length} box${g.boxes.length!==1?'es':''}`,styles:{fillColor:CHK_BG,textColor:T2,fontSize:8}},
+          {content:'',styles:{fillColor:CHK_BG}},
+          {content:fm(g.total),styles:{fontStyle:'bold',fillColor:CHK_BG,textColor:NAVY,halign:'right'}},
+        ]);
+        // Sub-rows per box
+        g.boxes.forEach(b=>{
+          entBody.push([
+            {content:'',styles:{textColor:T2}},
+            {content:'',styles:{textColor:T2}},
+            {content:b.bol,styles:{fontSize:8,textColor:[50,70,100]}},
+            {content:b.customer,styles:{textColor:[30,30,30]}},
+            {content:fm(b.amount),styles:{textColor:NAVY,halign:'right'}},
+          ]);
+        });
+      });
       doc.autoTable({
-        head:[['Date','BOL Number','Customer','Check #','Amount']],
-        body:ckRows,startY:y,margin:{left:ML,right:36},
-        styles:{fontSize:8,cellPadding:4},headStyles:{fillColor:[0,48,135],textColor:255,fontStyle:'bold'},
-        alternateRowStyles:{fillColor:[243,246,255]},
-        columnStyles:{3:{fontStyle:'bold',textColor:[41,128,185]},4:{halign:'right',textColor:[41,128,185]}},
+        head:[['Date','Check #','BOL Number','Customer','Amount']],
+        body:entBody,startY:y,margin:{left:ML,right:36},
+        styles:{fontSize:9,cellPadding:5,textColor:[30,30,30]},
+        headStyles:{fillColor:NAVY,textColor:255,fontStyle:'bold',fontSize:8,cellPadding:6},
+        columnStyles:{4:{halign:'right'}},
         didDrawPage:()=>this._pdfFooter(doc)
       });
-      const sumY=doc.lastAutoTable.finalY+14;
+      y=doc.lastAutoTable.finalY+20;
+
+      // Section label "CHECK SUMMARY"
+      doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(...T2);
+      doc.text('CHECK SUMMARY',ML,y);
+      doc.setDrawColor(...NAVY);doc.setLineWidth(0.5);doc.line(ML,y+3,W-36,y+3);
+      y+=12;
+      const sumKeys=Object.keys(ckSumMap).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+      const sumBody=[
+        ...sumKeys.map(k=>[
+          {content:`Ck #${k}`,styles:{fontStyle:'bold',textColor:NAVY}},
+          {content:String(ckRowsRaw.filter(r=>r.num===k).length),styles:{halign:'center'}},
+          {content:fm(ckSumMap[k]),styles:{halign:'right',textColor:NAVY}},
+        ]),
+        [
+          {content:'Total',styles:{fontStyle:'bold'}},
+          {content:`${ckRowsRaw.length} boxes · ${uniqueCount} checks`,styles:{halign:'center',fontStyle:'bold'}},
+          {content:fm(ckTotal),styles:{halign:'right',fontStyle:'bold',textColor:NAVY}},
+        ],
+      ];
       doc.autoTable({
-        head:[['Check #','Entries','Total Amount']],
-        body:[...Object.entries(ckSumMap).map(([k,v])=>[k,String(ckRows.filter(r=>r[3]===k).length),fm(v)]),['Total Checks',String(ckRows.length),fm(ckTotal)]],
-        startY:sumY,margin:{left:ML,right:36},
-        styles:{fontSize:8,cellPadding:4},headStyles:{fillColor:[41,128,185],textColor:255,fontStyle:'bold'},
-        alternateRowStyles:{fillColor:[235,245,255]},
+        head:[['Check #','Boxes','Total Amount']],
+        body:sumBody,startY:y,margin:{left:ML,right:36},
+        styles:{fontSize:9,cellPadding:5},
+        headStyles:{fillColor:NAVY,textColor:255,fontStyle:'bold',fontSize:8,cellPadding:6},
         columnStyles:{1:{halign:'center'},2:{halign:'right'}},
-        didDrawCell:(d)=>{if(d.row.index===Object.keys(ckSumMap).length){d.cell.styles.fontStyle='bold';}},
         didDrawPage:()=>this._pdfFooter(doc)
       });
       this._pdfFooter(doc);
