@@ -2825,7 +2825,7 @@ const App={
     };
     const ms=s=>{
       s=(s||'').trim();
-      if(/^L$/i.test(s))return'L';
+      if(/^[LJ]$/i.test(s))return'L';
       if(/half|½|1\/2/i.test(s))return'Half';
       if(/jumbo/i.test(s))return'Jumbo';
       if(/^jr/i.test(s))return'Jr';
