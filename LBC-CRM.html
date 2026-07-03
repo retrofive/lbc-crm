@@ -321,7 +321,13 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-.app-footer{flex-shrink:0;text-align:center;padding:8px 20px;font-size:11px;color:var(--t3);border-top:1px solid var(--border);background:var(--surface);letter-spacing:.03em}
+.app-footer{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:5px 16px;font-size:11px;color:var(--t3);border-top:1px solid var(--border);background:var(--surface);letter-spacing:.03em;gap:12px}
+.footer-copy{white-space:nowrap}
+.footer-file{display:flex;align-items:center;gap:6px;font-size:11px;font-family:Consolas,monospace;overflow:hidden}
+.footer-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.footer-dot.connected{background:#22c55e;box-shadow:0 0 5px rgba(34,197,94,.5)}
+.footer-dot.disconnected{background:#6b7280}
+.footer-path{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t2)}
 </style>
 </head>
 <body>
@@ -352,7 +358,10 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
     <div class="view" id="view-boxes"     style="display:none"></div>
     <div class="view" id="view-reports"   style="display:none"></div>
   </div>
-  <footer class="app-footer">© <script>document.write(new Date().getFullYear())</script> retrofive LLC. All rights reserved.</footer>
+  <footer class="app-footer">
+    <span class="footer-copy">© <script>document.write(new Date().getFullYear())</script> retrofive LLC. All rights reserved.</span>
+    <span class="footer-file"><span class="footer-dot disconnected" id="footer-dot"></span><span class="footer-path" id="footer-path">NO FILE CONNECTED</span></span>
+  </footer>
 </div>
 <div id="gear-overlay" class="gear-overlay" onclick="App.closeGear()"></div>
 <div id="gear-panel" class="gear-panel">
@@ -974,11 +983,16 @@ const App={
   },
   _updateFileStatus(){
     const el=document.getElementById('gear-file-status');
-    if(!el)return;
+    const dot=document.getElementById('footer-dot');
+    const path=document.getElementById('footer-path');
     if(this.fileHandle){
-      el.innerHTML=`<strong style="color:#22c55e">✓ Data File Connected</strong><span>${this.fileHandle.name}</span>`;
+      if(el)el.innerHTML=`<strong style="color:#22c55e">✓ Data File Connected</strong><span>${this.fileHandle.name}</span>`;
+      if(dot){dot.classList.remove('disconnected');dot.classList.add('connected');}
+      if(path)path.textContent=this.fileHandle.name;
     }else{
-      el.innerHTML='<strong>Connect Data File</strong><span>Auto-save to a JSON file on disk</span>';
+      if(el)el.innerHTML='<strong>Connect Data File</strong><span>Auto-save to a JSON file on disk</span>';
+      if(dot){dot.classList.remove('connected');dot.classList.add('disconnected');}
+      if(path)path.textContent='NO FILE CONNECTED';
     }
   },
   _mergeData(current,backup){
