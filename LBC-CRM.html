@@ -2509,15 +2509,20 @@ const App={
       const res=await fetch(url,{cache:'no-store'});
       if(!res.ok)throw new Error('HTTP '+res.status);
       const blob=await res.blob();
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='LBC-CRM.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-      if(el)el.innerHTML='<strong>Downloaded!</strong><span>Replace your current LBC-CRM.html with the downloaded file</span>';
-      toast('Update downloaded — replace your LBC-CRM.html file.');
+      if(window.showSaveFilePicker){
+        try{
+          const fh=await window.showSaveFilePicker({suggestedName:'LBC-CRM.html',types:[{description:'HTML Application',accept:{'text/html':['.html']}}]});
+          const w=await fh.createWritable();await w.write(blob);await w.close();
+          if(el)el.innerHTML='<strong style="color:var(--ok)">Saved!</strong><span>Restart the app from the new file</span>';
+          toast('Update saved — reopen LBC-CRM.html to apply.');
+          return;
+        }catch(e){if(e.name==='AbortError')return;}
+      }
+      // fallback for browsers without showSaveFilePicker
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='LBC-CRM.html';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+      if(el)el.innerHTML='<strong>Downloaded!</strong><span>Replace your LBC-CRM.html with the downloaded file</span>';
+      toast('Update downloaded to Downloads folder.');
     }catch(e){
       if(el)el.innerHTML='<strong>Download failed</strong><span>Check your connection and try again</span>';
       toast('Download failed: '+e.message);
