@@ -886,6 +886,7 @@ const App={
   anlFrom:'',anlTo:'',anlCmpFrom:'',anlCmpTo:'',anlShowFilter:false,
   contactSearch:'',openContacts:new Set(),ctView:'contacts',editContactId:null,addContactMode:false,
   fileHandle:null,
+  _dbPromise:null,
   rptFrom:'',rptTo:'',rptType:'overview',
 
   save(){
@@ -900,6 +901,7 @@ const App={
     }catch(e){
       if(e.name==='NotAllowedError'){
         this.fileHandle=null;
+        this._forgetHandle();
         this._updateFileStatus();
         toast('Data file permission lost. Data saved to browser only.');
       }
@@ -953,6 +955,7 @@ const App={
         }
       }catch(err){toast('Could not read file: '+err.message);return;}
       this.fileHandle=handle;
+      await this._persistHandle(handle);
       this.closeGear();
       this._updateFileStatus();
       await this._saveToFile();
@@ -973,6 +976,7 @@ const App={
         types:[{description:'LBC Data File',accept:{'application/json':['.json']}}]
       });
       this.fileHandle=handle;
+      await this._persistHandle(handle);
       this.closeGear();
       this._updateFileStatus();
       await this._saveToFile();
@@ -980,6 +984,66 @@ const App={
     }catch(e){
       if(e.name!=='AbortError')toast('Could not create file: '+e.message);
     }
+  },
+  _openDB(){
+    if(this._dbPromise)return this._dbPromise;
+    this._dbPromise=new Promise((res,rej)=>{
+      const r=indexedDB.open('lbc-crm-fh',1);
+      r.onupgradeneeded=e=>e.target.result.createObjectStore('handles');
+      r.onsuccess=e=>res(e.target.result);
+      r.onerror=e=>rej(e.target.error);
+    });
+    return this._dbPromise;
+  },
+  async _persistHandle(handle){
+    try{
+      const db=await this._openDB();
+      const tx=db.transaction('handles','readwrite');
+      tx.objectStore('handles').put(handle,'main');
+    }catch(e){}
+  },
+  async _forgetHandle(){
+    try{
+      const db=await this._openDB();
+      const tx=db.transaction('handles','readwrite');
+      tx.objectStore('handles').delete('main');
+    }catch(e){}
+  },
+  async _restoreHandle(){
+    try{
+      const db=await this._openDB();
+      return await new Promise((res,rej)=>{
+        const tx=db.transaction('handles','readonly');
+        const req=tx.objectStore('handles').get('main');
+        req.onsuccess=()=>res(req.result||null);
+        req.onerror=()=>res(null);
+      });
+    }catch(e){return null;}
+  },
+  _showReconnectBanner(handle){
+    const existing=document.getElementById('reconnect-banner');
+    if(existing)return;
+    const bar=document.createElement('div');
+    bar.id='reconnect-banner';
+    bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#1d4ed8;color:#fff;font-size:12px;padding:7px 16px;display:flex;align-items:center;gap:10px;justify-content:center;';
+    bar.innerHTML=`<span>📂 Re-connect to last data file: <strong>${handle.name}</strong></span><button onclick="App._reconnectFromBanner()" style="background:#fff;color:#1d4ed8;border:none;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;font-weight:600;">Reconnect</button><button onclick="this.closest('#reconnect-banner').remove()" style="background:transparent;border:none;color:rgba(255,255,255,.7);font-size:16px;cursor:pointer;margin-left:4px;">✕</button>`;
+    document.body.prepend(bar);
+    this._pendingHandle=handle;
+  },
+  async _reconnectFromBanner(){
+    const handle=this._pendingHandle;
+    if(!handle)return;
+    try{
+      const perm=await handle.requestPermission({mode:'readwrite'});
+      if(perm==='granted'){
+        this.fileHandle=handle;
+        this._pendingHandle=null;
+        document.getElementById('reconnect-banner')?.remove();
+        this._updateFileStatus();
+        await this._readFromFile();
+        toast('Reconnected to '+handle.name);
+      }
+    }catch(e){}
   },
   _updateFileStatus(){
     const el=document.getElementById('gear-file-status');
@@ -3544,6 +3608,18 @@ const App={
     if(migrated)this.save();
     this.setView('active');
     this._updateFileStatus();
+    // Try to restore last-used file handle from IndexedDB
+    this._restoreHandle().then(async handle=>{
+      if(!handle)return;
+      const perm=await handle.queryPermission({mode:'readwrite'}).catch(()=>'prompt');
+      if(perm==='granted'){
+        this.fileHandle=handle;
+        this._updateFileStatus();
+        await this._readFromFile();
+      }else{
+        this._showReconnectBanner(handle);
+      }
+    });
     document.addEventListener('visibilitychange',()=>{
       if(document.visibilityState==='visible')this._readFromFile();
     });
