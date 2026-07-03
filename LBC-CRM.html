@@ -409,6 +409,13 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
     </button>
   </div>
   <div class="gear-section">
+    <div class="gear-section-title">App</div>
+    <button class="gear-item" onclick="App.checkUpdate()">
+      <span class="gear-item-icon">🔄</span>
+      <span class="gear-item-body" id="gear-update-status"><strong>Check for Updates</strong><span>Current: <span class="ver-inline"></span></span></span>
+    </button>
+  </div>
+  <div class="gear-section">
     <div class="gear-section-title" style="color:#c0392b">Danger Zone</div>
     <button class="gear-item gear-item-danger" onclick="App.closeGear();App.purgeHistory()">
       <span class="gear-item-icon">🧹</span>
@@ -1589,6 +1596,10 @@ const App={
     document.getElementById('gear-panel').classList.add('on');
     document.getElementById('gear-overlay').classList.add('on');
     document.getElementById('gear-btn').classList.add('on');
+    const vi=document.querySelector('.ver-inline');
+    if(vi)vi.textContent=(document.querySelector('.ver')||{}).textContent||'';
+    const us=document.getElementById('gear-update-status');
+    if(us)us.innerHTML=`<strong>Check for Updates</strong><span>Current: ${(document.querySelector('.ver')||{}).textContent||''}</span>`;
   },
   closeGear(){
     document.getElementById('gear-panel').classList.remove('on');
@@ -2493,6 +2504,32 @@ const App={
     });
     results.sort((a,b)=>(b.coll.collectionDate||'').localeCompare(a.coll.collectionDate||''));
     return results;
+  },
+
+  async checkUpdate(){
+    const RAW='https://raw.githubusercontent.com/retrofive/lbc-crm/main/LBC-CRM.html';
+    const el=document.getElementById('gear-update-status');
+    if(el){el.innerHTML='<strong>Checking…</strong><span>Contacting GitHub</span>';}
+    const cmpVer=(a,b)=>{const[am,an]=(a+'').split('.').map(Number);const[bm,bn]=(b+'').split('.').map(Number);if(am!==bm)return am-bm;return(an||0)-(bn||0);};
+    try{
+      const res=await fetch(RAW+'?_='+Date.now());
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const html=await res.text();
+      const m=html.match(/class="ver">v([\d.]+)/);
+      if(!m)throw new Error('Version not found');
+      const remote=m[1];
+      const local=(document.querySelector('.ver')||{}).textContent.replace('v','').trim();
+      if(cmpVer(remote,local)>0){
+        if(el){el.innerHTML=`<strong style="color:var(--ok)">v${remote} available!</strong><span><a href="${RAW}" download="LBC-CRM.html" style="color:var(--accent);text-decoration:underline">Download update</a></span>`;}
+        toast(`Update available: v${remote}`);
+      } else {
+        if(el){el.innerHTML=`<strong>Up to date</strong><span>v${local} is the latest</span>`;}
+        toast('Already on the latest version.');
+      }
+    }catch(e){
+      if(el){el.innerHTML='<strong>Check for Updates</strong><span>Could not reach GitHub — try again</span>';}
+      toast('Update check failed: '+e.message);
+    }
   },
 
   clearAllContacts(){
