@@ -338,6 +338,7 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
       <button class="ntab"    id="tab-reports"   onclick="App.setView('reports')">Reports</button>
     </nav>
     <div class="hdr-r">
+      <button class="gear-btn" onclick="App.manualRefresh()" id="refresh-btn" title="Refresh data from file"><svg viewBox="0 0 18 18" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 9a8 8 0 1 0 1.6-4.8"/><polyline points="1,2 1,9 8,9"/></svg></button>
       <button class="gear-btn" onclick="Calc.toggle()" id="calc-btn" title="Calculator"><svg viewBox="0 0 16 20" width="16" height="20" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x=".75" y=".75" width="14.5" height="18.5" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="2.5" width="11" height="3.8" rx=".8" fill="currentColor" opacity="0.7"/><rect x="2.5" y="8.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="6.5" y="8.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="10.5" y="8.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="2.5" y="11.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="6.5" y="11.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="10.5" y="11.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="2.5" y="14.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="6.5" y="14.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="10.5" y="14.2" width="3" height="2.2" rx=".6" fill="currentColor"/><rect x="2.5" y="17.2" width="6.5" height="2" rx=".6" fill="currentColor"/><rect x="10.5" y="17.2" width="3" height="2" rx=".6" fill="currentColor"/></svg></button>
       <button class="gear-btn" onclick="App.toggleGear()" id="gear-btn" title="Settings">⚙</button>
     </div>
@@ -894,6 +895,14 @@ const App={
         toast('Data file permission lost. Data saved to browser only.');
       }
     }
+  },
+  async manualRefresh(){
+    if(!this.fileHandle){toast('No data file connected.');return;}
+    const btn=document.getElementById('refresh-btn');
+    if(btn)btn.style.opacity='0.4';
+    await this._readFromFile();
+    if(btn)btn.style.opacity='';
+    toast('Data refreshed from file.');
   },
   async _readFromFile(){
     if(!this.fileHandle)return;
