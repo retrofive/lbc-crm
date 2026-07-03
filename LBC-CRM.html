@@ -895,6 +895,20 @@ const App={
       }
     }
   },
+  async _readFromFile(){
+    if(!this.fileHandle)return;
+    try{
+      const file=await this.fileHandle.getFile();
+      if(file.size===0)return;
+      const text=await file.text();
+      const d=JSON.parse(text);
+      if(d&&typeof d==='object'){
+        this.data=d;
+        localStorage.setItem(DB,JSON.stringify(this.data));
+        this.render();
+      }
+    }catch(e){/* silent — file may be mid-write on the other PC */}
+  },
   async connectDataFile(){
     if(!window.showOpenFilePicker){
       alert('Your browser does not support the File System API.\nUse Chrome or Edge for this feature.');
@@ -3507,6 +3521,9 @@ const App={
     if(migrated)this.save();
     this.setView('active');
     this._updateFileStatus();
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='visible')this._readFromFile();
+    });
     document.addEventListener('click',e=>{
       if(!e.target.closest('.badge-wrap'))document.querySelectorAll('.badge-menu.on').forEach(el=>el.classList.remove('on'));
     });
