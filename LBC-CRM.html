@@ -2502,6 +2502,28 @@ const App={
     return results;
   },
 
+  async downloadUpdate(url){
+    const el=document.getElementById('gear-update-status');
+    if(el)el.innerHTML='<strong>Downloading…</strong><span>Fetching latest file</span>';
+    try{
+      const res=await fetch(url,{cache:'no-store'});
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const blob=await res.blob();
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='LBC-CRM.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      if(el)el.innerHTML='<strong>Downloaded!</strong><span>Replace your current LBC-CRM.html with the downloaded file</span>';
+      toast('Update downloaded — replace your LBC-CRM.html file.');
+    }catch(e){
+      if(el)el.innerHTML='<strong>Download failed</strong><span>Check your connection and try again</span>';
+      toast('Download failed: '+e.message);
+    }
+  },
+
   async checkUpdate(){
     const API='https://api.github.com/repos/retrofive/lbc-crm/contents/version.json';
     const DL='https://raw.githubusercontent.com/retrofive/lbc-crm/main/LBC-CRM.html';
@@ -2516,7 +2538,7 @@ const App={
       if(!remote)throw new Error('Version not found');
       const local=(document.querySelector('.ver')||{}).textContent.replace('v','').trim();
       if(cmpVer(remote,local)>0){
-        if(el)el.innerHTML=`<strong style="color:var(--ok)">v${remote} available!</strong><span><a href="${DL}" download="LBC-CRM.html" style="color:var(--accent);text-decoration:underline">Download update</a></span>`;
+        if(el)el.innerHTML=`<strong style="color:var(--ok)">v${remote} available!</strong><span><button onclick="App.downloadUpdate('${DL}')" style="background:none;border:none;padding:0;color:var(--acc);text-decoration:underline;cursor:pointer;font-size:inherit">Download &amp; replace file</button></span>`;
         toast(`Update available: v${remote}`);
       }else{
         if(el)el.innerHTML=`<strong>Up to date</strong><span>v${local} is the latest</span>`;
