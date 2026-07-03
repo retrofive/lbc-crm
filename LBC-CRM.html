@@ -2503,27 +2503,27 @@ const App={
   },
 
   async checkUpdate(){
-    const RAW='https://raw.githubusercontent.com/retrofive/lbc-crm/main/LBC-CRM.html';
+    const API='https://api.github.com/repos/retrofive/lbc-crm/contents/version.json';
+    const DL='https://raw.githubusercontent.com/retrofive/lbc-crm/main/LBC-CRM.html';
     const el=document.getElementById('gear-update-status');
-    if(el){el.innerHTML='<strong>Checking…</strong><span>Contacting GitHub</span>';}
+    if(el)el.innerHTML='<strong>Checking…</strong><span>Contacting GitHub</span>';
     const cmpVer=(a,b)=>{const[am,an]=(a+'').split('.').map(Number);const[bm,bn]=(b+'').split('.').map(Number);if(am!==bm)return am-bm;return(an||0)-(bn||0);};
     try{
-      const res=await fetch(RAW+'?_='+Date.now());
+      const res=await fetch(API,{headers:{'Accept':'application/vnd.github.v3.raw','Cache-Control':'no-cache'},cache:'no-store'});
       if(!res.ok)throw new Error('HTTP '+res.status);
-      const html=await res.text();
-      const m=html.match(/class="ver">v([\d.]+)/);
-      if(!m)throw new Error('Version not found');
-      const remote=m[1];
+      const data=await res.json();
+      const remote=data.version;
+      if(!remote)throw new Error('Version not found');
       const local=(document.querySelector('.ver')||{}).textContent.replace('v','').trim();
       if(cmpVer(remote,local)>0){
-        if(el){el.innerHTML=`<strong style="color:var(--ok)">v${remote} available!</strong><span><a href="${RAW}" download="LBC-CRM.html" style="color:var(--accent);text-decoration:underline">Download update</a></span>`;}
+        if(el)el.innerHTML=`<strong style="color:var(--ok)">v${remote} available!</strong><span><a href="${DL}" download="LBC-CRM.html" style="color:var(--accent);text-decoration:underline">Download update</a></span>`;
         toast(`Update available: v${remote}`);
-      } else {
-        if(el){el.innerHTML=`<strong>Up to date</strong><span>v${local} is the latest</span>`;}
+      }else{
+        if(el)el.innerHTML=`<strong>Up to date</strong><span>v${local} is the latest</span>`;
         toast('Already on the latest version.');
       }
     }catch(e){
-      if(el){el.innerHTML='<strong>Check for Updates</strong><span>Could not reach GitHub — try again</span>';}
+      if(el)el.innerHTML='<strong>Check for Updates</strong><span>Could not reach GitHub — try again</span>';
       toast('Update check failed: '+e.message);
     }
   },
