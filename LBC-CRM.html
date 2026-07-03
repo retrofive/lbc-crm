@@ -2875,23 +2875,24 @@ const App={
             if(/^\d+$/.test(rn)&&/^\d{7,}$/.test(bol))allBoxRows.push(cells);
           }
           const line=cells.filter(c=>c).join(' ');
-          const cm=line.match(/^(\d{3,6})\s*\/\s*\$(\d[\d,]*(?:\.\d+)?)/);
-          if(cm)checkTotals[cm[1]]=parseFloat(cm[2].replace(/,/g,''));
+          const cm=line.match(/^(\d{1,5})\s*\/\s*\$(\d[\d,]*(?:\.\d+)?)/);
+          if(cm)checkTotals[String(parseInt(cm[1]))]=parseFloat(cm[2].replace(/,/g,''));
         }
       }
       if(!allBoxRows.length||!info?.collectionDate)continue;
       const ckCnt={};
-      for(const r of allBoxRows){let p='';for(let ci=3;ci<r.length;ci++){const v=(r[ci]||'').trim();if(v==='$$'||/^\d{3,7}$/.test(v)){p=v;break;}}if(p&&p!=='$$'&&/^\d+$/.test(p))ckCnt[p]=(ckCnt[p]||0)+1;}
+      for(const r of allBoxRows){let p='';for(let ci=3;ci<r.length;ci++){const v=(r[ci]||'').trim();if(v==='$$'||/^\d{1,5}$/.test(v)){p=v;break;}}if(p&&p!=='$$'&&/^\d+$/.test(p)){const nk=String(parseInt(p));ckCnt[nk]=(ckCnt[nk]||0)+1;}}
       const pricing=this.data.pricing||{};
       const boxes=allBoxRows.map(r=>{
         const bol=r[1]||'',name=r[2]||'';
         let sz='L',pay='$$';
-        for(let ci=3;ci<r.length;ci++){const v=(r[ci]||'').trim();if(!v)continue;if(v==='$$'||/^\d{3,7}$/.test(v)){pay=v;break;}sz=ms(v);}
+        for(let ci=3;ci<r.length;ci++){const v=(r[ci]||'').trim();if(!v)continue;if(v==='$$'||/^\d{1,5}$/.test(v)){pay=v;break;}sz=ms(v);}
         const cash=pay==='$$';
         let cost=0;
+        const ckKey=cash?'':String(parseInt(pay));
         if(cash){cost=pricing[sz]||0;}
-        else if(/^\d+$/.test(pay)){const tot=checkTotals[pay]||0,cnt=ckCnt[pay]||1;cost=tot?Math.round(tot/cnt*100)/100:(pricing[sz]||0);}
-        return{id:uid(),bolNumber:bol,customerName:name,destination:'',size:sz,cost,payment:cash?'cash':'check',checkNumber:cash?'':pay,net:cost};
+        else if(/^\d+$/.test(pay)){const tot=checkTotals[ckKey]||0,cnt=ckCnt[ckKey]||1;cost=tot?Math.round(tot/cnt*100)/100:(pricing[sz]||0);}
+        return{id:uid(),bolNumber:bol,customerName:name,destination:'',size:sz,cost,payment:cash?'cash':'check',checkNumber:cash?'':ckKey,net:cost};
       });
       colls.push({id:uid(),status:'completed',startDate:info.collectionDate,collectionDate:info.collectionDate,
         shipmentDate:info.shipmentDate,etaManila:info.etaManila,
