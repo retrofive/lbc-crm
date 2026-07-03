@@ -3613,6 +3613,16 @@ const App={
       if(!handle)return;
       const perm=await handle.queryPermission({mode:'readwrite'}).catch(()=>'prompt');
       if(perm==='granted'){
+        // Verify the file is actually accessible before marking connected
+        try{
+          await handle.getFile();
+        }catch(e){
+          // File gone or inaccessible — clear stored handle
+          await this._forgetHandle();
+          this._updateFileStatus();
+          toast('Last data file could not be found. Please reconnect.');
+          return;
+        }
         this.fileHandle=handle;
         this._updateFileStatus();
         await this._readFromFile();
