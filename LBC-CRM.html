@@ -2504,25 +2504,31 @@ const App={
 
   async downloadUpdate(url){
     const el=document.getElementById('gear-update-status');
+    // Open Save As dialog FIRST — must happen within the click gesture before any await fetch
+    let fh=null;
+    if(window.showSaveFilePicker){
+      try{
+        fh=await window.showSaveFilePicker({suggestedName:'LBC-CRM.html'});
+      }catch(e){
+        if(e.name==='AbortError'){if(el)el.innerHTML='<strong>Check for Updates</strong><span>Cancelled</span>';return;}
+      }
+    }
     if(el)el.innerHTML='<strong>Downloading…</strong><span>Fetching latest file</span>';
     try{
       const res=await fetch(url,{cache:'no-store'});
       if(!res.ok)throw new Error('HTTP '+res.status);
       const blob=await res.blob();
-      if(window.showSaveFilePicker){
-        try{
-          const fh=await window.showSaveFilePicker({suggestedName:'LBC-CRM.html',types:[{description:'HTML Application',accept:{'text/html':['.html']}}]});
-          const w=await fh.createWritable();await w.write(blob);await w.close();
-          if(el)el.innerHTML='<strong style="color:var(--ok)">Saved!</strong><span>Restart the app from the new file</span>';
-          toast('Update saved — reopen LBC-CRM.html to apply.');
-          return;
-        }catch(e){if(e.name==='AbortError')return;}
+      if(fh){
+        const w=await fh.createWritable();await w.write(blob);await w.close();
+        if(el)el.innerHTML='<strong style="color:var(--ok)">Update saved!</strong><span>Reopen LBC-CRM.html to apply</span>';
+        toast('Update saved — reopen LBC-CRM.html to apply.');
+      }else{
+        const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='LBC-CRM.html';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+        if(el)el.innerHTML='<strong>Downloaded!</strong><span>Replace your LBC-CRM.html with the file in Downloads</span>';
+        toast('Saved to Downloads folder.');
       }
-      // fallback for browsers without showSaveFilePicker
-      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='LBC-CRM.html';
-      document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
-      if(el)el.innerHTML='<strong>Downloaded!</strong><span>Replace your LBC-CRM.html with the downloaded file</span>';
-      toast('Update downloaded to Downloads folder.');
     }catch(e){
       if(el)el.innerHTML='<strong>Download failed</strong><span>Check your connection and try again</span>';
       toast('Download failed: '+e.message);
