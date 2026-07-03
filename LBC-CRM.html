@@ -1036,6 +1036,15 @@ const App={
     try{
       const perm=await handle.requestPermission({mode:'readwrite'});
       if(perm==='granted'){
+        // Verify file still exists before marking connected
+        try{ await handle.getFile(); }catch(e){
+          this._pendingHandle=null;
+          document.getElementById('reconnect-banner')?.remove();
+          await this._forgetHandle();
+          this._updateFileStatus();
+          toast('File no longer exists — please connect a new data file.');
+          return;
+        }
         this.fileHandle=handle;
         this._pendingHandle=null;
         document.getElementById('reconnect-banner')?.remove();
