@@ -2416,15 +2416,9 @@ const App={
       this.openContacts.add(best.id);
       this.setView('contacts');
     }else{
-      // Debug: check how many contacts even have the last name word anywhere
-      const debugMatches=contacts.filter(c=>{
-        const dw=words(c.displayName||'');
-        const clw=words(c.lastName||'');
-        return lw.some(w=>clw.includes(w)||dw.includes(w));
-      }).length;
       this.contactSearch='';
       this.setView('contacts');
-      toast(`No match for "${name}" (last="${lw.join(' ')}" checked ${contacts.length} contacts, ${debugMatches} had that word)`);
+      toast(`No contact on file for "${name}" — use + Add to create one.`);
     }
   },
 
