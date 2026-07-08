@@ -343,6 +343,8 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
 #pause-banner .pb-info{font-weight:400;opacity:.92;flex:1}
 #pause-banner .pb-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;padding:3px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em}
 #pause-banner .pb-btn:hover{background:rgba(255,255,255,.3)}
+.nm-link{background:none;border:none;padding:0;margin:0;font:inherit;font-size:inherit;color:var(--chk);cursor:pointer;text-decoration:underline;text-decoration-color:rgba(27,74,140,.3);text-underline-offset:2px;text-align:left}
+.nm-link:hover{color:var(--chk-dk,#163d73);text-decoration-color:var(--chk)}
 
 /* ── Home Landing ─────────────────────────────────────────────────────────── */
 .home-wrap{padding:28px 28px 40px;max-width:1100px;margin:0 auto;width:100%}
@@ -1385,7 +1387,8 @@ const App={
         <td class="ct"><button class="bsav" onclick="App.saveBox('${cid}','${b.id}')" title="Save">✓</button><button class="bdel" onclick="App.delBox('${cid}','${b.id}')">×</button></td>
       </tr>`;
     }
-    return`<tr><td class="rn">${num}</td><td class="mo">${esc(b.bolNumber)||'—'}</td><td>${esc(b.customerName)||'—'}</td><td style="color:var(--t2);font-size:13px">${esc(b.destination)||'—'}</td><td style="font-size:12px;color:var(--t2);white-space:nowrap">${b.pickupDate?fd(b.pickupDate):'—'}</td><td><span class="chip ${chip}">${lbl}</span></td><td class="nu">${b.cost?fm(b.cost):'—'}</td><td>${pay}</td><td class="nu">${nv?fm(nv):'—'}</td><td class="ct"><button class="bdel" onclick="App.delBox('${cid}','${b.id}')">×</button></td></tr>`;
+    const nmCell=b.customerName?`<button class="nm-link" data-nm="${esc(b.customerName)}" onclick="App.openContactByName(this.dataset.nm)">${esc(b.customerName)}</button>`:'—';
+    return`<tr><td class="rn">${num}</td><td class="mo">${esc(b.bolNumber)||'—'}</td><td>${nmCell}</td><td style="color:var(--t2);font-size:13px">${esc(b.destination)||'—'}</td><td style="font-size:12px;color:var(--t2);white-space:nowrap">${b.pickupDate?fd(b.pickupDate):'—'}</td><td><span class="chip ${chip}">${lbl}</span></td><td class="nu">${b.cost?fm(b.cost):'—'}</td><td>${pay}</td><td class="nu">${nv?fm(nv):'—'}</td><td class="ct"><button class="bdel" onclick="App.delBox('${cid}','${b.id}')">×</button></td></tr>`;
   },
 
   addRow(){
@@ -2386,6 +2389,16 @@ const App={
         <div style="flex:1;min-width:0"><div class="cnm">${esc(c.displayName)}${noteLbl}</div>${subLine}</div>
         <div class="ccr">${shipLbl}<div class="car${op?' op':''}">▾</div></div>
       </div>${body}</div>`;
+  },
+
+  openContactByName(name){
+    if(!name)return;
+    const lname=name.split(',')[0].trim().toLowerCase();
+    const contact=(this.data.contacts||[]).find(c=>(c.lastName||'').toLowerCase().trim()===lname);
+    this.contactSearch=contact?(contact.displayName||name):name;
+    this.openContacts=new Set();
+    if(contact)this.openContacts.add(contact.id);
+    this.setView('contacts');
   },
 
   togContact(id){
