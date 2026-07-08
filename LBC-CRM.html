@@ -2398,28 +2398,22 @@ const App={
     const lname=parts[0].toLowerCase();
     const fname=(parts[1]||'').toLowerCase();
     const contacts=this.data.contacts||[];
-    const matchesLast=(c)=>{
-      // Check explicit lastName field
-      if((c.lastName||'').toLowerCase().trim()===lname)return true;
-      const dn=(c.displayName||'').toLowerCase().trim();
-      // "Last, First" format in displayName
-      if(dn.startsWith(lname+','))return true;
-      // "First Last" format — last word matches
-      const w=dn.split(/\s+/);
-      if(w[w.length-1]===lname)return true;
-      return false;
-    };
-    const matchesFirst=(c)=>{
-      if(!fname)return true;
-      if((c.firstName||'').toLowerCase().trim()===fname)return true;
-      return(c.displayName||'').toLowerCase().includes(fname);
-    };
-    let contact=contacts.find(c=>matchesLast(c)&&matchesFirst(c));
-    if(!contact)contact=contacts.find(c=>matchesLast(c));
+    // Score each contact: 10=last+first match, 2=last only
+    const scored=contacts.map(c=>{
+      const dn=(c.displayName||'').toLowerCase();
+      const cln=(c.lastName||'').toLowerCase();
+      const cfn=(c.firstName||'').toLowerCase();
+      const words=dn.split(/\s+/);
+      const hasLast=cln===lname||dn.startsWith(lname+',')||words[words.length-1]===lname;
+      if(!hasLast)return null;
+      const hasFirst=!fname||(cfn===fname||dn.includes(fname));
+      return{c,score:hasFirst?10:2};
+    }).filter(Boolean).sort((a,b)=>b.score-a.score);
     this.openContacts=new Set();
-    if(contact){
-      this.contactSearch=contact.displayName||name;
-      this.openContacts.add(contact.id);
+    if(scored.length){
+      const best=scored[0].c;
+      this.contactSearch=best.displayName||name;
+      this.openContacts.add(best.id);
       this.setView('contacts');
     }else{
       this.contactSearch='';
