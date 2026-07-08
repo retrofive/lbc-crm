@@ -2394,11 +2394,25 @@ const App={
 
   openContactByName(name){
     if(!name)return;
-    const lname=name.split(',')[0].trim().toLowerCase();
-    const contact=(this.data.contacts||[]).find(c=>(c.lastName||'').toLowerCase().trim()===lname);
-    this.contactSearch=contact?(contact.displayName||name):name;
+    const parts=name.split(',');
+    const lname=parts[0].trim().toLowerCase();
+    const fname=(parts[1]||'').trim().toLowerCase();
+    const contacts=this.data.contacts||[];
+    // Try exact last+first match first, then last-only
+    let contact=contacts.find(c=>
+      (c.lastName||'').toLowerCase().trim()===lname &&
+      (fname?(c.firstName||'').toLowerCase().trim()===fname||
+              (c.displayName||'').toLowerCase().includes(fname):true)
+    );
+    if(!contact)contact=contacts.find(c=>(c.lastName||'').toLowerCase().trim()===lname);
     this.openContacts=new Set();
-    if(contact)this.openContacts.add(contact.id);
+    if(contact){
+      this.contactSearch=contact.displayName||name;
+      this.openContacts.add(contact.id);
+    } else {
+      // Fall back to last name only so "First Last" style displayNames still surface
+      this.contactSearch=lname;
+    }
     this.setView('contacts');
   },
 
