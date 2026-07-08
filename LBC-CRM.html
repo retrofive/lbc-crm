@@ -310,7 +310,8 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
 .ck.zero{grid-column:span 2}
 .gear-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.35)}
 .gear-overlay.on{display:block}
-.gear-panel{position:fixed;top:0;right:0;bottom:0;width:280px;background:var(--surface);border-left:1px solid var(--border);z-index:301;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease}
+.gear-panel{position:fixed;top:0;right:0;bottom:0;width:280px;background:var(--surface);border-left:1px solid var(--border);z-index:301;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease;overflow:hidden}
+.gear-panel-body{flex:1;overflow-y:auto}
 .gear-panel.on{transform:translateX(0)}
 .gear-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px;color:var(--t1);background:var(--t1);color:#fff}
 .gear-close{background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,.7);padding:2px 6px;border-radius:4px}
@@ -388,6 +389,7 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
     <span>Settings &amp; Tools</span>
     <button class="gear-close" onclick="App.closeGear()">✕</button>
   </div>
+  <div class="gear-panel-body">
   <div class="gear-section">
     <div class="gear-section-title">Account</div>
     <button class="gear-item" onclick="App.closeGear();App.showSettingsModal()">
@@ -458,6 +460,7 @@ input:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(224,9
       <span class="gear-item-icon">💣</span>
       <span class="gear-item-body"><strong>Reset Everything</strong><span>Wipe all data and start completely fresh</span></span>
     </button>
+  </div>
   </div>
 </div>
 <div id="mr"></div>
