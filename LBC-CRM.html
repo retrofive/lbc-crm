@@ -2394,23 +2394,34 @@ const App={
 
   openContactByName(name){
     if(!name)return;
-    const parts=name.split(',');
-    const lname=parts[0].trim().toLowerCase();
-    const fname=(parts[1]||'').trim().toLowerCase();
+    const parts=name.split(',').map(s=>s.trim());
+    const lname=parts[0].toLowerCase();
+    const fname=(parts[1]||'').toLowerCase();
     const contacts=this.data.contacts||[];
-    // Try exact last+first match, then last-only against lastName field only (not address/city)
-    let contact=contacts.find(c=>
-      (c.lastName||'').toLowerCase().trim()===lname &&
-      (fname?(c.firstName||'').toLowerCase().trim()===fname||
-              (c.displayName||'').toLowerCase().includes(fname):true)
-    );
-    if(!contact)contact=contacts.find(c=>(c.lastName||'').toLowerCase().trim()===lname);
+    const matchesLast=(c)=>{
+      // Check explicit lastName field
+      if((c.lastName||'').toLowerCase().trim()===lname)return true;
+      const dn=(c.displayName||'').toLowerCase().trim();
+      // "Last, First" format in displayName
+      if(dn.startsWith(lname+','))return true;
+      // "First Last" format — last word matches
+      const w=dn.split(/\s+/);
+      if(w[w.length-1]===lname)return true;
+      return false;
+    };
+    const matchesFirst=(c)=>{
+      if(!fname)return true;
+      if((c.firstName||'').toLowerCase().trim()===fname)return true;
+      return(c.displayName||'').toLowerCase().includes(fname);
+    };
+    let contact=contacts.find(c=>matchesLast(c)&&matchesFirst(c));
+    if(!contact)contact=contacts.find(c=>matchesLast(c));
     this.openContacts=new Set();
     if(contact){
       this.contactSearch=contact.displayName||name;
       this.openContacts.add(contact.id);
       this.setView('contacts');
-    } else {
+    }else{
       this.contactSearch='';
       this.setView('contacts');
       toast(`No contact on file for "${name}" — use + Add to create one.`);
