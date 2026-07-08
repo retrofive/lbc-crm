@@ -2398,7 +2398,7 @@ const App={
     const lname=parts[0].trim().toLowerCase();
     const fname=(parts[1]||'').trim().toLowerCase();
     const contacts=this.data.contacts||[];
-    // Try exact last+first match first, then last-only
+    // Try exact last+first match, then last-only against lastName field only (not address/city)
     let contact=contacts.find(c=>
       (c.lastName||'').toLowerCase().trim()===lname &&
       (fname?(c.firstName||'').toLowerCase().trim()===fname||
@@ -2409,11 +2409,12 @@ const App={
     if(contact){
       this.contactSearch=contact.displayName||name;
       this.openContacts.add(contact.id);
+      this.setView('contacts');
     } else {
-      // Fall back to last name only so "First Last" style displayNames still surface
-      this.contactSearch=lname;
+      this.contactSearch='';
+      this.setView('contacts');
+      toast(`No contact on file for "${name}" — use + Add to create one.`);
     }
-    this.setView('contacts');
   },
 
   togContact(id){
