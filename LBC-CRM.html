@@ -1231,7 +1231,7 @@ const App={
     el.innerHTML=`<div class="home-wrap">
       <div class="home-hero">
         <h1>LBC ▸ Collection Manager</h1>
-        <p>Cargo Branch 602 · Biweekly collection dashboard</p>
+        <p>${[this.data.settings.branchTitle||('Branch '+(this.data.settings.branch||'602')),this.data.settings.agent].filter(Boolean).join(' · ')}</p>
       </div>
       <div class="home-status-bar">${statusBar}</div>
       <div class="home-grid">
