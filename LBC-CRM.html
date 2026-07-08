@@ -2394,19 +2394,19 @@ const App={
 
   openContactByName(name){
     if(!name)return;
+    // Strip punctuation, split into words, lowercase
+    const words=s=>s.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(Boolean);
     const parts=name.split(',').map(s=>s.trim());
-    const lname=parts[0].toLowerCase();
-    const fname=(parts[1]||'').toLowerCase();
+    const lw=words(parts[0]);          // last name words
+    const fw=words(parts[1]||'');      // first name words
     const contacts=this.data.contacts||[];
-    // Score each contact: 10=last+first match, 2=last only
     const scored=contacts.map(c=>{
-      const dn=(c.displayName||'').toLowerCase();
-      const cln=(c.lastName||'').toLowerCase();
-      const cfn=(c.firstName||'').toLowerCase();
-      const words=dn.split(/\s+/);
-      const hasLast=cln===lname||dn.startsWith(lname+',')||words[words.length-1]===lname;
+      const dw=words(c.displayName||'');
+      const clw=words(c.lastName||'');
+      // Last name: every word in lw must appear somewhere in contact name words
+      const hasLast=lw.every(w=>clw.includes(w)||dw.includes(w));
       if(!hasLast)return null;
-      const hasFirst=!fname||(cfn===fname||dn.includes(fname));
+      const hasFirst=!fw.length||fw.every(w=>dw.includes(w));
       return{c,score:hasFirst?10:2};
     }).filter(Boolean).sort((a,b)=>b.score-a.score);
     this.openContacts=new Set();
@@ -2416,9 +2416,15 @@ const App={
       this.openContacts.add(best.id);
       this.setView('contacts');
     }else{
+      // Debug: check how many contacts even have the last name word anywhere
+      const debugMatches=contacts.filter(c=>{
+        const dw=words(c.displayName||'');
+        const clw=words(c.lastName||'');
+        return lw.some(w=>clw.includes(w)||dw.includes(w));
+      }).length;
       this.contactSearch='';
       this.setView('contacts');
-      toast(`No contact on file for "${name}" — use + Add to create one.`);
+      toast(`No match for "${name}" (last="${lw.join(' ')}" checked ${contacts.length} contacts, ${debugMatches} had that word)`);
     }
   },
 
