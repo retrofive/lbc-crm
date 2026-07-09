@@ -4051,7 +4051,7 @@ const App={
     const brs=c.boxes.map((b,i)=>{
       const pay=b.payment==='cash'?'Cash':b.payment==='check'?`Ck #${b.checkNumber||''}`:b.payment==='split'?`$${b.cashAmount||0} cash / Ck#${b.checkNumber} $${b.checkAmount||0}`:'-';
       const showCost=b.payment!=='check';
-      if(simple)return`<tr><td>${i+1}</td><td class="mo">${esc(b.bolNumber)||''}</td><td>${esc(b.customerName)||''}</td><td>${esc(b.destination)||''}</td><td style="text-align:center">${SZ[b.size]||b.size||''}</td></tr>`;
+      if(simple)return`<tr><td>${i+1}</td><td class="mo">${esc(b.bolNumber)||''}</td><td>${esc(b.customerName)||''}</td><td>${esc(b.destination)||''}</td><td style="text-align:center">${SZ[b.size]||b.size||''}</td><td style="text-align:center">${pay}</td></tr>`;
       return`<tr><td>${i+1}</td><td class="mo">${esc(b.bolNumber)||''}</td><td>${esc(b.customerName)||''}</td><td>${esc(b.destination)||''}</td><td style="text-align:center">${SZ[b.size]||b.size||''}</td><td style="text-align:right">${showCost&&b.cost?fm(b.cost):''}</td><td style="text-align:center">${pay}</td><td style="text-align:right">${(b.net||b.cost)?fm(b.net||b.cost):''}</td></tr>`;
     }).join('');
     const crs=Object.entries(counts).map(([sz,n])=>`<div class="sr"><span>No. of ${SZ[sz]||sz}:</span><span>${n}</span></div>`).join('');
@@ -4069,7 +4069,7 @@ const App={
 <div class="ir"><span class="lb">Email:</span>${esc(c.email||s.email||'—')}</div><div class="ir"><span class="lb">ETA Manila:</span>${esc(c.etaManila||'—')}</div>
 <div class="ir"><span class="lb">Phone:</span>${esc(c.phone1||s.phone1||'—')}</div><div class="ir"><span class="lb">Phone:</span>${esc(c.phone2||s.phone2||'—')}</div>
 </div>
-<table><thead><tr><th>#</th><th>Bill of Lading No.</th><th>Last Name, First</th><th>Destination</th><th style="text-align:center">Size</th>${simple?'':'<th class="r">Cost</th><th style="text-align:center">$$ / CK</th><th class="r">Net</th>'}</tr></thead><tbody>${brs}</tbody></table>
+<table><thead><tr><th>#</th><th>Bill of Lading No.</th><th>Last Name, First</th><th>Destination</th><th style="text-align:center">Size</th>${simple?'<th style="text-align:center">$$ / CK</th>':'<th class="r">Cost</th><th style="text-align:center">$$ / CK</th><th class="r">Net</th>'}</tr></thead><tbody>${brs}</tbody></table>
 <div class="sm"><div class="sb"><h3>Box Count by Type</h3>${crs||'<div style="color:#999">No entries</div>'}<div class="sr tot"><span>Total Boxes</span><span>${c.boxes.length}</span></div></div><div class="sb"><h3>Payment Summary</h3><div class="sr"><span>Total Cash</span><span>${fm(tC)}</span></div>${ckl}<div class="sr"><span>Total Checks</span><span>${fm(tK)}</span></div>${c.other?`<div class="sr"><span>Other</span><span>${fm(parseFloat(c.other))}</span></div>`:''}<div class="sr tot"><span>Total Amount Due</span><span>${fm(tC+tK+(parseFloat(c.other)||0))}</span></div>${splitSect}</div></div>
 <div class="sg"><div class="sig">Submitted by: ________________________________</div><div class="sig">Signature: ____________________________________</div><div class="sig" style="margin-top:20px">Date: ________________________________________</div><div class="sig" style="margin-top:20px">Received by: __________________________________</div></div>
 <div class="fo-sect fo-pg">
