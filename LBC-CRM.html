@@ -1872,7 +1872,7 @@ const App={
         const subs=g.boxes.map(b=>{
           const chip=SZCHIP[b.size]||'';const lbl=SZ[b.size]||b.size||'—';const nv=b.net||b.cost;
           const snm=b.customerName?`<button class="nm-link" data-nm="${esc(b.customerName)}" onclick="App.openContactByName(this.dataset.nm)">${esc(b.customerName)}</button>`:'—';
-          return`<tr class="ck-grp-sub"><td class="rn"></td><td class="mo" style="padding-left:18px">${esc(b.bolNumber)||'—'}</td><td>${snm}</td><td style="color:var(--t2);font-size:13px">${esc(b.destination)||'—'}</td><td style="font-size:12px;color:var(--t2);white-space:nowrap">${b.pickupDate?fd(b.pickupDate):'—'}</td><td><span class="chip ${chip}">${lbl}</span></td><td class="nu">${b.cost?fm(b.cost):'—'}</td><td></td><td class="nu">${nv?fm(nv):'—'}</td><td class="ct"><button class="bdel" onclick="App.delBox('${c.id}','${b.id}')">×</button></td></tr>`;
+          return`<tr class="ck-grp-sub"><td class="rn"></td><td class="mo" style="padding-left:18px">${esc(b.bolNumber)||'—'}</td><td>${snm}</td><td style="color:var(--t2);font-size:13px">${esc(b.destination)||'—'}</td><td style="font-size:12px;color:var(--t2);white-space:nowrap">${b.pickupDate?fd(b.pickupDate):'—'}</td><td><span class="chip ${chip}">${lbl}</span></td><td class="nu"></td><td></td><td class="nu"></td><td class="ct"><button class="bdel" onclick="App.delBox('${c.id}','${b.id}')">×</button></td></tr>`;
         }).join('');
         return`<tr class="ck-grp-hd"><td class="rn" style="font-size:11px;color:var(--chk)">${numLbl}</td><td class="mo"><span class="pc pck">Ck #${esc(g.checkNumber)}</span></td><td style="font-size:12px;color:var(--t2)">${custLbl}</td><td></td><td></td><td style="font-size:12px;color:var(--t2)">${g.boxes.length} boxes</td><td class="nu" style="color:var(--chk);font-weight:600">${fm(g.total)}</td><td><span style="font-size:11px;color:var(--chk)">Check</span></td><td class="nu" style="color:var(--chk)">${totalNet?fm(totalNet):'—'}</td><td></td></tr>${subs}`;
       }).join('');
@@ -4050,7 +4050,8 @@ const App={
     });
     const brs=c.boxes.map((b,i)=>{
       const pay=b.payment==='cash'?'Cash':b.payment==='check'?`Ck #${b.checkNumber||''}`:b.payment==='split'?`$${b.cashAmount||0} cash / Ck#${b.checkNumber} $${b.checkAmount||0}`:'-';
-      return`<tr><td>${i+1}</td><td class="mo">${esc(b.bolNumber)||''}</td><td>${esc(b.customerName)||''}</td><td>${esc(b.destination)||''}</td><td style="text-align:center">${SZ[b.size]||b.size||''}</td><td style="text-align:right">${b.cost?fm(b.cost):''}</td><td style="text-align:center">${pay}</td><td style="text-align:right">${(b.net||b.cost)?fm(b.net||b.cost):''}</td></tr>`;
+      const showCost=b.payment!=='check';
+      return`<tr><td>${i+1}</td><td class="mo">${esc(b.bolNumber)||''}</td><td>${esc(b.customerName)||''}</td><td>${esc(b.destination)||''}</td><td style="text-align:center">${SZ[b.size]||b.size||''}</td><td style="text-align:right">${showCost&&b.cost?fm(b.cost):''}</td><td style="text-align:center">${pay}</td><td style="text-align:right">${(b.net||b.cost)?fm(b.net||b.cost):''}</td></tr>`;
     }).join('');
     const crs=Object.entries(counts).map(([sz,n])=>`<div class="sr"><span>No. of ${SZ[sz]||sz}:</span><span>${n}</span></div>`).join('');
     const ckl=Object.entries(cks).map(([ck,a])=>`<div class="sr ckr"><span>Check #${ck}:</span><span>${fm(a)}</span></div>`).join('');
